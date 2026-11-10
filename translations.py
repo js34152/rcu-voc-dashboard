@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Multi-language translation module for Global RCU VOC Intelligence Dashboard
+Multi-language translation module for Global RCU VOC Intelligence Dashboard v4.0
 Languages supported: Korean (ko), English (en), Chinese (zh), Vietnamese (vi), Thai (th)
 """
 
 UI_TEXT = {
     "ko": {
-        "gate_title": "🔒 Global RCU VOC Intelligence v3.0",
+        "gate_title": "🔒 Global RCU VOC Intelligence v4.0",
         "gate_sub": "글로벌 60개사 RCU 인텔리전스 & B2B 수주 시스템",
         "gate_info": "인가된 사내 실원 전용 보안 화면입니다. 접속 암호를 입력하세요.",
         "gate_input": "접속 비밀번호 (Access Code)",
@@ -33,9 +33,9 @@ UI_TEXT = {
         "filter_cat": "이슈 카테고리",
         "filter_kw": "💬 본문 키워드 검색",
         "kw_placeholder": "예: 터치, 페어링, CEC, 배터리, load shedding",
-        "main_title": "📺 글로벌 RCU 고객 VOC 인텔리전스 대시보드 v3.0",
+        "main_title": "📺 글로벌 RCU 고객 VOC 인텔리전스 대시보드 v4.0",
         "main_caption": "글로벌 60개사 (TV OEM · OTT 스트리밍 · 글로벌 Telco/MSO · 스마트홈 오토메이션) 통합 분석 & B2B 수주 시스템",
-        "top3_alert": "🚨 핵심 고객 불만 TOP 3:",
+        "top3_alert": "🚨 핵심 엔지니어링 결함 TOP 3:",
         "neg_alert": "⚠️ 부정 VOC 집중 모니터링:",
         "complaint_rate": "불만율",
         "tab1": "📊 종합 모니터링 & 트렌드",
@@ -66,6 +66,8 @@ UI_TEXT = {
         "rd_action_title": "💡 R&D 개발 / 기획팀 우선 개선 권고안 (Action Items)",
         "core_weakness": "핵심 취약점",
         "hw_fw_proposal": "📌 차기 하드웨어/FW 개선 제언:",
+        "sample_voc_title": "💬 대표 고객 부정 VOC 비교",
+        "recent_reviews": "최근 접수된 고객 핵심 불만",
         "t3_title": "🔍 부정 VOC 핵심 키워드 & 2단어 연관구(Bigram) 분석",
         "top_keywords": "🔥 부정 VOC 핵심 빈출 단어 TOP 10",
         "top_bigrams": "🧩 핵심 결함 연관구 (Bigram TOP 10)",
@@ -85,7 +87,7 @@ UI_TEXT = {
         "rd_solution_title": "🛠️ 2. 당사 R&D 기술 해결 솔루션 (Technical Action)",
         "counter_sol": "[{cat}] 대응 솔루션:",
         "pitch_title": "🎤 3. 임원 보고 / B2B 수주 맞춤 Pitch 스크립트",
-        "btn_pptx_down": "📊 [{client}] 임원 보고용 제안서 다운로드 (.pptx)",
+        "btn_pptx_down": "📊 [{client}] 임원 보고용 제안서 다운로드 (.pptx v4.0)",
         "count_unit": "건",
         "ratio_unit": "비중(%)",
         "week_unit": "수집 주차 (Year-Week)",
@@ -95,13 +97,13 @@ UI_TEXT = {
         "ai_key_input": "🔑 Gemini API Key",
         "ai_key_help": "Gemini API 키를 입력하세요 (또는 Streamlit Secrets 설정)",
         "ai_key_missing": "💡 Gemini API 키가 입력되지 않았습니다. 사이드바 하단 또는 위 입력창에 API Key를 넣으면 AI 분석이 실행됩니다.",
-        "ai_slide_title": "4. Gemini AI 심층 결함 원인 (Root Cause) 진단",
+        "ai_slide_title": "5. Gemini AI 심층 결함 원인 (Root Cause) 진단",
         "ai_summary_title": "고객 VoC 핵심 3줄 요약",
         "ai_root_cause_title": "H/W & F/W 결함 근본 원인 (Root Cause) 분석",
         "ai_strategy_title": "B2B 수주전 기술 차별화 제언",
     },
     "en": {
-        "gate_title": "🔒 Global RCU VOC Intelligence v3.0",
+        "gate_title": "🔒 Global RCU VOC Intelligence v4.0",
         "gate_sub": "Global 60 Brands RCU Intelligence & B2B Proposal System",
         "gate_info": "Authorized personnel only. Please enter the security access code.",
         "gate_input": "Access Password (Access Code)",
@@ -128,9 +130,9 @@ UI_TEXT = {
         "filter_cat": "Issue Category",
         "filter_kw": "💬 Keyword Search",
         "kw_placeholder": "e.g. touch, pairing, CEC, battery, load shedding",
-        "main_title": "📺 Global RCU Customer VOC Intelligence Dashboard v3.0",
+        "main_title": "📺 Global RCU Customer VOC Intelligence Dashboard v4.0",
         "main_caption": "Unified Analysis & B2B Proposal System across 60 Global Brands (TV OEM, Streaming, Telco/MSO, Smart Home)",
-        "top3_alert": "🚨 Top 3 Critical Customer Pain Points:",
+        "top3_alert": "🚨 Top 3 Engineering Defects:",
         "neg_alert": "⚠️ Negative VOC Priority Watch:",
         "complaint_rate": "Complaint Rate",
         "tab1": "📊 Overview & Trends",
@@ -182,7 +184,7 @@ UI_TEXT = {
         "rd_solution_title": "🛠️ 2. Proprietary R&D Engineering Solutions",
         "counter_sol": "[{cat}] Technical Countermeasure:",
         "pitch_title": "🎤 3. Executive / B2B Winning Pitch Script",
-        "btn_pptx_down": "📊 Download Executive Proposal Deck (.pptx) for [{client}]",
+        "btn_pptx_down": "📊 Download Executive Proposal Deck (.pptx v4.0) for [{client}]",
         "count_unit": "Count",
         "ratio_unit": "Share (%)",
         "week_unit": "Collection Week (Year-Week)",
@@ -192,13 +194,13 @@ UI_TEXT = {
         "ai_key_input": "🔑 Gemini API Key",
         "ai_key_help": "Enter Gemini API Key (or configure Streamlit Secrets)",
         "ai_key_missing": "💡 Gemini API Key is missing. Enter your key in the sidebar below.",
-        "ai_slide_title": "4. Gemini AI Root Cause Engineering Diagnosis",
+        "ai_slide_title": "5. Gemini AI Root Cause Engineering Diagnosis",
         "ai_summary_title": "3-Line VoC Key Summary",
         "ai_root_cause_title": "H/W & F/W Root Cause Engineering Analysis",
         "ai_strategy_title": "Winning B2B Strategy Recommendation",
     },
     "zh": {
-        "gate_title": "🔒 全球遥控器 (RCU) 用户 VOC 智能看板 v3.0",
+        "gate_title": "🔒 全球遥控器 (RCU) 用户 VOC 智能看板 v4.0",
         "gate_sub": "全球 60 家主流品牌 RCU 商业情报与 B2B 提案系统",
         "gate_info": "内部授权员工专用界面，请输入访问密码。",
         "gate_input": "访问密码 (Access Code)",
@@ -225,9 +227,9 @@ UI_TEXT = {
         "filter_cat": "缺陷分类",
         "filter_kw": "💬 正文关键词搜索",
         "kw_placeholder": "例如: 触摸, 配对, CEC, 电池, load shedding",
-        "main_title": "📺 全球遥控器 (RCU) 用户 VOC 智能看板 v3.0",
+        "main_title": "📺 全球遥控器 (RCU) 用户 VOC 智能看板 v4.0",
         "main_caption": "覆盖全球 60 家品牌（电视 OEM、流媒体、全球运营商、全屋智能）的综合分析看板",
-        "top3_alert": "🚨 核心用户不满 TOP 3:",
+        "top3_alert": "🚨 核心工程技术缺陷 TOP 3:",
         "neg_alert": "⚠️ 重点监控负面 VOC 品牌:",
         "complaint_rate": "不满率",
         "tab1": "📊 综合监控与趋势",
@@ -258,6 +260,8 @@ UI_TEXT = {
         "rd_action_title": "💡 R&D 研发/产品团队优先改进建议 (Action Items)",
         "core_weakness": "核心痛点",
         "hw_fw_proposal": "📌 下一代硬件/固件改进提案:",
+        "sample_voc_title": "💬 典型用户负面 VOC 对比",
+        "recent_reviews": "最近接收的核心用户反馈",
         "t3_title": "🔍 负面 VOC 核心高频词与双词搭配 (Bigram) 分析",
         "top_keywords": "🔥 负面评价高频词 TOP 10",
         "top_bigrams": "🧩 核心缺陷双词关联组 (Bigram TOP 10)",
@@ -277,7 +281,7 @@ UI_TEXT = {
         "rd_solution_title": "🛠️ 2. 我方 R&D 技术应对解决方案 (Technical Action)",
         "counter_sol": "[{cat}] 针对性应对方案:",
         "pitch_title": "🎤 3. 高管汇报 / B2B 竞标赢单 Pitch 话术",
-        "btn_pptx_down": "📊 下载 [{client}] 高管汇报 PPT 提案 (.pptx)",
+        "btn_pptx_down": "📊 下载 [{client}] 高管汇报 PPT 提案 (.pptx v4.0)",
         "count_unit": "条",
         "ratio_unit": "占比(%)",
         "week_unit": "采集周次 (Year-Week)",
@@ -287,13 +291,13 @@ UI_TEXT = {
         "ai_key_input": "🔑 Gemini API Key",
         "ai_key_help": "请输入 Gemini API 密钥（或在 Streamlit Secrets 中设置）",
         "ai_key_missing": "💡 尚未配置 Gemini API 密钥。在侧边栏下方输入密钥即可。",
-        "ai_slide_title": "4. Gemini AI 缺陷根因与工程诊断 (Root Cause)",
+        "ai_slide_title": "5. Gemini AI 缺陷根因与工程诊断 (Root Cause)",
         "ai_summary_title": "用户反馈 3 行核心摘要",
         "ai_root_cause_title": "硬件与固件缺陷根本原因 (Root Cause)",
         "ai_strategy_title": "下一代竞标技术差异化策略建议",
     },
     "vi": {
-        "gate_title": "🔒 Bảng Phân Tích Thông Minh VOC Điều Khiển RCU Toàn Cầu v3.0",
+        "gate_title": "🔒 Bảng Phân Tích Thông Minh VOC Điều Khiển RCU Toàn Cầu v4.0",
         "gate_sub": "Hệ thống B2B & Thông tin RCU của 60 thương hiệu toàn cầu",
         "gate_info": "Giao diện bảo mật chỉ dành cho nhân viên được ủy quyền. Vui lòng nhập mật khẩu.",
         "gate_input": "Mật khẩu truy cập (Access Code)",
@@ -320,9 +324,9 @@ UI_TEXT = {
         "filter_cat": "Danh mục sự cố",
         "filter_kw": "💬 Tìm kiếm từ khóa",
         "kw_placeholder": "Ví dụ: cảm ứng, ghép đôi, CEC, pin, delay",
-        "main_title": "📺 Bảng Phân Tích Thông Minh VOC Khách Hàng RCU Toàn Cầu v3.0",
+        "main_title": "📺 Bảng Phân Tích Thông Minh VOC Khách Hàng RCU Toàn Cầu v4.0",
         "main_caption": "Phân tích tích hợp & Hệ thống đề xuất B2B cho 60 thương hiệu toàn cầu (TV OEM, OTT, Viễn thông, Smart Home)",
-        "top3_alert": "🚨 TOP 3 khiếu nại cốt lõi của khách hàng:",
+        "top3_alert": "🚨 TOP 3 lỗi kỹ thuật cốt lõi:",
         "neg_alert": "⚠️ Cảnh báo VOC tiêu cực tập trung:",
         "complaint_rate": "Tỷ lệ khiếu nại",
         "tab1": "📊 Giám Sát & Xu Hướng Tổng Thể",
@@ -374,7 +378,7 @@ UI_TEXT = {
         "rd_solution_title": "🛠️ 2. Giải pháp kỹ thuật R&D từ chúng tôi",
         "counter_sol": "Giải pháp khắc phục cho [{cat}]:",
         "pitch_title": "🎤 3. Kịch bản Pitch đàm phán B2B & Báo cáo lãnh đạo",
-        "btn_pptx_down": "📊 Tải báo cáo đề xuất (.pptx) cho [{client}]",
+        "btn_pptx_down": "📊 Tải báo cáo đề xuất (.pptx v4.0) cho [{client}]",
         "count_unit": "Lượt",
         "ratio_unit": "Tỷ lệ (%)",
         "week_unit": "Tuần thu thập (Year-Week)",
@@ -384,13 +388,13 @@ UI_TEXT = {
         "ai_key_input": "🔑 Khóa Gemini API",
         "ai_key_help": "Nhập khóa Gemini API (hoặc cấu hình Streamlit Secrets)",
         "ai_key_missing": "💡 Chưa nhập khóa Gemini API. Hãy nhập khóa ở thanh bên dưới.",
-        "ai_slide_title": "4. Chẩn Đoán Lỗi Bằng Gemini AI (Root Cause)",
+        "ai_slide_title": "5. Chẩn Đoán Lỗi Bằng Gemini AI (Root Cause)",
         "ai_summary_title": "Tóm Tắt Cốt Lõi VOC 3 Dòng",
         "ai_root_cause_title": "Phân Tích Kỹ Thuật Nguyên Nhân Gốc Rễ H/W & F/W",
         "ai_strategy_title": "Đề Xuất Chiến Lược Kỹ Thuật Tạo Khác Biệt",
     },
     "th": {
-        "gate_title": "🔒 แดชบอร์ดอินเทลลิเจนซ์ VOC รีโมทคอนโทรล (RCU) ทั่วโลก v3.0",
+        "gate_title": "🔒 แดชบอร์ดอินเทลลิเจนซ์ VOC รีโมทคอนโทรล (RCU) ทั่วโลก v4.0",
         "gate_sub": "ระบบข้อมูล RCU และข้อเสนอ B2B จาก 60 แบรนด์ชั้นนำทั่วโลก",
         "gate_info": "สำหรับบุคลากรที่ได้รับอนุญาตเท่านั้น กรุณากรอกรหัสผ่านเพื่อเข้าใช้งาน",
         "gate_input": "รหัสผ่านเข้าใช้งาน (Access Code)",
@@ -417,9 +421,9 @@ UI_TEXT = {
         "filter_cat": "หมวดหมู่ปัญหา",
         "filter_kw": "💬 ค้นหาด้วยคีย์เวิร์ด",
         "kw_placeholder": "เช่น: สัมผัส, จับคู่, CEC, แบตเตอรี่, ดีเลย์",
-        "main_title": "📺 แดชบอร์ดอินเทลลิเจนซ์ VOC ผู้ใช้รีโมทคอนโทรล (RCU) ทั่วโลก v3.0",
+        "main_title": "📺 แดชบอร์ดอินเทลลิเจนซ์ VOC ผู้ใช้รีโมทคอนโทรล (RCU) ทั่วโลก v4.0",
         "main_caption": "การวิเคราะห์แบบบูรณาการและระบบข้อเสนอ B2B ครอบคลุม 60 แบรนด์ทั่วโลก",
-        "top3_alert": "🚨 3 อันดับปัญหาสำคัญของลูกค้า:",
+        "top3_alert": "🚨 3 อันดับข้อบกพร่องทางวิศวกรรมสำคัญ:",
         "neg_alert": "⚠️ แบรนด์ที่ต้องเฝ้าระวัง VOC เชิงลบเป็นพิเศษ:",
         "complaint_rate": "อัตราการร้องเรียน",
         "tab1": "📊 การติดตามและแนวโน้มภาพรวม",
@@ -471,7 +475,7 @@ UI_TEXT = {
         "rd_solution_title": "🛠️ 2. โซลูชันทางเทคนิคจากทีม R&D ของเรา",
         "counter_sol": "โซลูชันรับมือสำหรับ [{cat}]:",
         "pitch_title": "🎤 3. สคริปต์นำเสนอสำหรับผู้บริหาร / ข้อเสนอ B2B",
-        "btn_pptx_down": "📊 ดาวน์โหลดสไลด์ข้อเสนอผู้บริหาร (.pptx) สำหรับ [{client}]",
+        "btn_pptx_down": "📊 ดาวน์โหลดสไลด์ข้อเสนอผู้บริหาร (.pptx v4.0) สำหรับ [{client}]",
         "count_unit": "รายการ",
         "ratio_unit": "สัดส่วน (%)",
         "week_unit": "สัปดาห์ที่เก็บข้อมูล (Year-Week)",
@@ -484,7 +488,7 @@ UI_TEXT = {
         "ai_summary_title": "สรุปประเด็นสำคัญ VOC 3 บรรทัด",
         "ai_root_cause_title": "วิเคราะห์สาเหตุทางวิศวกรรมของข้อบกพร่อง H/W & F/W",
         "ai_strategy_title": "กลยุทธ์ทางเทคนิคเพื่อสร้างความได้เปรียบในการแข่งขัน",
-        "ai_slide_title": "4. การวินิจฉัยสาเหตุที่แท้จริงด้วย Gemini AI",
+        "ai_slide_title": "5. การวินิจฉัยสาเหตุที่แท้จริงด้วย Gemini AI",
     }
 }
 
@@ -499,6 +503,9 @@ CATEGORIES = {
     "계정/업데이트/광고": {"ko": "계정/업데이트/광고", "en": "Account/OTA Update/Ad UI", "zh": "OTA固件升级/账号/广告骚扰", "vi": "Tài khoản/Cập nhật OTA/Quảng cáo", "th": "บัญชี/อัปเดต OTA/โฆษณา"},
     "내구성/하드웨어 퀄리티": {"ko": "내구성/하드웨어 퀄리티", "en": "Durability/Casing Quality", "zh": "外壳做工/跌落耐用性", "vi": "Độ bền vỏ/Chất lượng phần cứng", "th": "ความทนทาน/คุณภาพการประกอบ"},
     "단순 앱/기능 불만": {"ko": "단순 앱/기능 불만", "en": "App Shortcut/Custom Key", "zh": "预设快捷键/专属App策略", "vi": "Phím tắt ứng dụng/Tính năng", "th": "ปุ่มลัดแอป/ฟังก์ชันเสริม"},
+    "그립감/인체공학 설계": {"ko": "그립감/인체공학 설계", "en": "Ergonomics/Grip Design", "zh": "握持手感/人体工学设计", "vi": "Thiết kế công thái học/Cầm nắm", "th": "การยศาสตร์/การจับถือ"},
+    "초기 등록/호환성 설정": {"ko": "초기 등록/호환성 설정", "en": "Initial Setup/Compatibility", "zh": "初始配对/设备兼容设置", "vi": "Cài đặt ban đầu/Tương thích", "th": "การตั้งค่าเริ่มต้น/ความเข้ากันได้"},
+    "모션/터치 센서 감도": {"ko": "모션/터치 센서 감도", "en": "Motion/Touchpad Sensitivity", "zh": "空鼠陀螺仪/触控板灵敏度", "vi": "Độ nhạy cảm ứng/Chuột bay", "th": "ความไวเซนเซอร์โมชัน/ทัชแพด"},
     "기타/일반": {"ko": "기타/일반", "en": "General/Other", "zh": "其他/常规问题", "vi": "Khác/Chung", "th": "อื่นๆ/ทั่วไป"},
 }
 
@@ -663,31 +670,90 @@ CATEGORY_INFO = {
             "th": "เผลอโดนปุ่มแอปสตรีมมิ่งแล้วเด้งออก, เปลี่ยนปุ่มลัดที่ไม่ได้ใช้ไม่ได้, ไม่มีเสียงบี๊บตามหารีโมท"
         }
     },
-    "기타/일반": {
+    "그립감/인체공학 설계": {
         "desc": {
-            "ko": "단순 불만 표현, 배송/패키징 등 전반적인 만족도 이슈",
-            "en": "General dissatisfaction expressions, shipping/packaging, and overall quality feedback",
-            "zh": "单纯情绪宣泄、物流包装破损等整体满意度问题",
-            "vi": "Phàn nàn chung, đóng gói/vận chuyển và độ hài lòng tổng thể",
-            "th": "การระบายความไม่พอใจทั่วไป ปัญหาการจัดส่ง/บรรจุภัณฑ์ และความพึงพอใจโดยรวม"
+            "ko": "리모컨 파지감 불량, 표면 미끄러움, 과도하게 얇거나 각진 모서리로 인한 손목 피로 및 분실 취약 폼팩터",
+            "en": "Poor ergonomic grip, slippery surface, wrist fatigue from overly thin casing, lost in couch cushions",
+            "zh": "机身过滑易脱手、棱角过硬硌手、外形过于轻薄导致易滑入沙发缝隙",
+            "vi": "Cảm giác cầm nắm kém, vỏ trơn trượt, quá mỏng gây mỏi tay và dễ lọt khe ghế sofa",
+            "th": "จับไม่ถนัดมือ ผิวสัมผัสลื่น เคสบางเกินไปจนหลุดมือและไหลตกซอกโซฟาได้ง่าย",
         },
         "ex": {
-            "ko": "전반적인 품질 실망, 포장 파손",
-            "en": "Overall quality disappointment, damaged packaging",
+            "ko": "리모컨이 너무 얇고 미끄러워서 자꾸 떨어뜨림, 소파 틈새로 미끄러져 들어가서 찾기 힘듦",
+            "en": "Too slippery and thin to hold comfortably, constantly slips deep into couch cushions",
+            "zh": "外壳没有防滑拿不住、太薄了老是掉进沙发缝隙里",
+            "vi": "Điều khiển quá trơn và mỏng khó cầm chắc, hay bị trượt rơi vào khe ghế sofa",
+            "th": "รีโมทบางและลื่นมาก ทำตกบ่อยและไหลลงซอกโซฟาหาไม่เจอ",
+        }
+    },
+    "초기 등록/호환성 설정": {
+        "desc": {
+            "ko": "TV 본체/셋톱박스 간 초기 제조사 코드 인식 실패, 복잡한 수동 등록 절차 및 호환성 가이드 부실",
+            "en": "Initial setup pairing failures, complex brand code programming, poor setup manual guidance",
+            "zh": "首次开机对码失败、电视品牌代码匹配繁琐、用户配对说明书指导不清",
+            "vi": "Lỗi nhận diện mã thương hiệu TV ban đầu, quy trình cài đặt quá phức tạp, hướng dẫn khó hiểu",
+            "th": "ซิงค์รหัสแบรนด์ทีวีครั้งแรกไม่ติด ขั้นตอนตั้งค่าซับซ้อน และคู่มือไม่ชัดเจน",
+        },
+        "ex": {
+            "ko": "셋톱박스에 리모컨 등록이 안 됨, 설명서 보고 따라 해도 TV 브랜드 코드가 안 맞음",
+            "en": "Cannot register remote to set-top box, brand codes in manual do not work",
+            "zh": "说明书的代码都试遍了也配不上电视、机顶盒根本搜不到遥控器",
+            "vi": "Không kết nối được với TV Box, nhập mã thương hiệu theo hướng dẫn không ăn",
+            "th": "ลงทะเบียนรีโมทกับกล่องไม่ผ่าน ทำตามคู่มือแล้วรหัสทีวีก็ยังไม่ตรง",
+        }
+    },
+    "모션/터치 센서 감도": {
+        "desc": {
+            "ko": "에어마우스 자이로 센서 포인터 튐/떨림 현상, 영점 드리프트(Drift), 터치패드 오인식 및 과민 반응",
+            "en": "Air mouse cursor jitter/drift, gyro sensor calibration failure, erratic touchpad responsiveness",
+            "zh": "飞鼠光标乱晃漂移、陀螺仪零点偏移失准、触控板过于灵敏导致误触误翻页",
+            "vi": "Con trỏ chuột bay bị giật lag/trôi lệch tâm, lỗi cảm biến con quay hồi chuyển, bàn rê quá nhạy",
+            "th": "เคอร์เซอร์แอร์เมาส์สั่นและลอยหลุดตำแหน่ง, เซนเซอร์ไจโรเพี้ยน, ทัชแพดไวเกินไป",
+        },
+        "ex": {
+            "ko": "마우스 커서가 지혼자 멋대로 움직이고 영점이 안 맞음, 터치패드가 너무 민감해서 살짝 닿아도 넘어감",
+            "en": "Air mouse cursor drifts away on its own, touchpad is overly sensitive causing mis-clicks",
+            "zh": "光标自己到处乱飘定不住点、触控板太灵敏了稍微碰到就跳台",
+            "vi": "Chuột bay tự động trôi không đúng tâm, bàn rê cảm ứng nhạy quá mức chạm nhẹ đã nhảy",
+            "th": "เคอร์เซอร์เมาส์วิ่งเอง คุมไม่อยู่ ทัชแพดแตะนิดเดียวก็เลื่อนจอเอง",
+        }
+    },
+    "기타/일반": {
+        "desc": {
+            "ko": "단순 감정적 불만 표현, 배송 파손 등 H/W 기술 원인이 특정되지 않는 일반 피드백",
+            "en": "General emotional dissatisfaction or shipping issues without specific H/W technical causes",
+            "zh": "单纯情绪宣泄、物流包装破损等无明确软硬件技术根因的常规评价",
+            "vi": "Phàn nàn cảm xúc chung hoặc vấn đề vận chuyển không xác định được nguyên nhân kỹ thuật",
+            "th": "การระบายความรู้สึกทั่วไปหรือปัญหาการจัดส่ง โดยไม่มีสาเหตุทางเทคนิค H/W ที่ระบุได้",
+        },
+        "ex": {
+            "ko": "전반적인 품질 실망, 포장 박스 파손",
+            "en": "Overall quality disappointment, crushed packaging box",
             "zh": "对整体做工失望、包装压损破裂",
             "vi": "Thất vọng về chất lượng tổng thể, bao bì bị rách hỏng",
-            "th": "ผิดหวังกับคุณภาพโดยรวม, บรรจุภัณฑ์ชำรุดเสียหาย"
+            "th": "ผิดหวังกับคุณภาพโดยรวม, กล่องบรรจุภัณฑ์ชำรุดเสียหาย",
         }
     }
 }
 
 def get_cat_desc(cat, lang="ko"):
     info = CATEGORY_INFO.get(cat, {})
-    return info.get("desc", {}).get(lang, info.get("desc", {}).get("ko", cat))
+    desc_dict = info.get("desc") or info.get("description") or {}
+    if isinstance(desc_dict, dict):
+        return desc_dict.get(lang, desc_dict.get("ko", cat))
+    return str(desc_dict) if desc_dict else cat
 
 def get_cat_example(cat, lang="ko"):
     info = CATEGORY_INFO.get(cat, {})
-    return info.get("ex", {}).get(lang, info.get("ex", {}).get("ko", ""))
+    ex_dict = info.get("ex") or info.get("example") or info.get("examples") or {}
+    if isinstance(ex_dict, dict):
+        res = ex_dict.get(lang, ex_dict.get("ko", ""))
+        if res and str(res).strip() not in ["-", "", "None"]:
+            return res
+        return ex_dict.get("ko", "-")
+    elif isinstance(ex_dict, str) and ex_dict.strip() not in ["-", "", "None"]:
+        return ex_dict
+    return "-"
 
 DEVICE_TYPES = {
     "TV 제조사": {"ko": "TV 제조사", "en": "TV OEM", "zh": "电视制造厂商", "vi": "Nhà sản xuất TV (OEM)", "th": "ผู้ผลิตทีวี (OEM)"},
@@ -715,7 +781,7 @@ UI_TYPES = {
     "명품 금속 터치": {"ko": "명품 금속 터치", "en": "Premium Metallic Touch", "zh": "高端金属触控", "vi": "Cảm ứng kim loại cao cấp", "th": "สัมผัสโลหะพรีเมียม"},
     "모터 제어 휠": {"ko": "모터 제어 휠", "en": "Motorized Control Wheel", "zh": "电机控制滚轮", "vi": "Con lăn điều khiển động cơ", "th": "วงล้อควบคุมมอเตอร์"},
     "미니멀 물리키": {"ko": "미니멀 물리키", "en": "Minimal Physical Keys", "zh": "极简物理按键", "vi": "Phím cứng tối giản", "th": "ปุ่มกดสไตล์มินิมอล"},
-    "백라이트 물리키": {"ko": "백라이트 물리키", "en": "Backlit Physical Keys", "zh": "背光物理按键", "vi": "Phím cứng có đèn nền", "th": "ปุ่มกดพร้อมไฟแ블็ค라이ท์"},
+    "백라이트 물리키": {"ko": "백라이트 물리키", "en": "Backlit Physical Keys", "zh": "背光物理按键", "vi": "Phím cứng có đèn nền", "th": "ปุ่มกดพร้อมไฟแบล็คไลท์"},
     "보안 키패드": {"ko": "보안 키패드", "en": "Security Keypad", "zh": "安防数字键盘", "vi": "Bàn phím bảo mật", "th": "แป้นพิมพ์ความปลอดภัย"},
     "삼각기둥 백라이트": {"ko": "삼각기둥 백라이트", "en": "Prism Backlit Keys", "zh": "棱柱体背光键", "vi": "Phím đèn nền lăng trụ", "th": "ปุ่มกดไฟทรงปริซึม"},
     "스마트 패널": {"ko": "스마트 패널", "en": "Smart Control Panel", "zh": "智能控制面板", "vi": "Bảng điều khiển thông minh", "th": "แผงควบคุมอัจฉริยะ"},
@@ -732,7 +798,7 @@ UI_TYPES = {
     "터치 클릭패드": {"ko": "터치 클릭패드", "en": "Touch Clickpad", "zh": "触控点击板", "vi": "Bàn rê cảm ứng Clickpad", "th": "คลิกแพดระบบสัมผัส"},
     "터치/모션 백라이트": {"ko": "터치/모션 백라이트", "en": "Touch/Motion Backlight", "zh": "触控/动作感应背光", "vi": "Đèn nền cảm ứng/chuyển động", "th": "ไฟสัมผัส/ตรวจจับการเคลื่อนไหว"},
     "터치스크린/물리키": {"ko": "터치스크린/물리키", "en": "Touchscreen / Physical Keys", "zh": "触摸屏/物理按键", "vi": "Màn hình cảm ứng / Phím cứng", "th": "หน้าจอสัมผัส / ปุ่มกด"},
-    "터치스크린/인터콤": {"ko": "터치스크린/인터콤", "en": "Touchscreen / Intercom", "zh": "触摸屏/可视对讲", "vi": "Màn hình cảm ứng / Đàm thoại", "th": "หน้าจอสัมผัส / 인터คอม"}
+    "터치스크린/인터콤": {"ko": "터치스크린/인터콤", "en": "Touchscreen / Intercom", "zh": "触摸屏/可视对讲", "vi": "Màn hình cảm ứng / Đàm thoại", "th": "หน้าจอสัมผัส / อินเตอร์คอม"}
 }
 
 REGIONS = {
@@ -806,7 +872,7 @@ ACTION_RECOMMENDATIONS = {
         "en": "Install anti-corrosion plated battery terminals against chemical leakage and sensor-gated backlight leakage suppression (12+ months battery life).",
         "zh": "采用防漏液特种抗腐蚀电镀端子，结合智能环境光/动作传感器的背光漏电抑制架构（确保电池寿命超12个月）。",
         "vi": "Trang bị các cực mạ chống ăn mòn chống rò rỉ hóa chất pin và tích hợp cảm biến thông minh ngăn hao hụt pin đèn nền (tuổi thọ pin trên 12 tháng).",
-        "th": "ใช้ขั้วแบตเตอรี่ชุบเคลือบป้องกันการกัดกร่อนจากสารเคมีรั่วซึม และระบบตัดไฟรั่วของไฟแ블็ค라이ท์ด้วยเซนเซอร์อัจฉริยะ (การันตีอายุแบตเตอรี่ 12 เดือนขึ้นไป)",
+        "th": "ใช้ขั้วแบตเตอรี่ชุบเคลือบป้องกันการกัดกร่อนจากสารเคมีรั่วซึม และระบบตัดไฟรั่วของไฟแบล็คไลท์ด้วยเซนเซอร์อัจฉริยะ (การันตีอายุแบตเตอรี่ 12 เดือนขึ้นไป)",
     },
     "음성 인식/마이크": {
         "ko": "거실 TV 사운드 간섭을 90% 차단하는 마이크 독립 음향 챔버(Chamber) 설계 및 다국어 주변 소음 제거(ENC) 칩셋 탑재",
@@ -829,6 +895,27 @@ ACTION_RECOMMENDATIONS = {
         "vi": "Hỗ trợ gán lại phím chức năng tùy biến (User Programmable Key) và tích hợp cử chỉ điều hướng EPG thông minh.",
         "th": "รองรับการตั้งค่าปุ่มลัดตามใจชอบ (User Programmable Key) และระบบนำทางผังรายการ EPG อัจฉริยะด้วยท่าทางสัมผัส",
     },
+    "그립감/인체공학 설계": {
+        "ko": "하판 미세 텍스처(Micro-texture) 널링 가공 및 손목 피로도 저감 3D 곡면 쉘(Ergonomic Shell) 적용, 소파 이탈 방지 무게중심 최적화",
+        "en": "Apply micro-textured knurling grip surface, 3D ergonomic contour shell reducing wrist fatigue, and anti-slip weight balancing.",
+        "zh": "背壳采用微纹理防滑蚀纹与3D人体工学曲面造型，优化手持重心平衡，彻底解决易滑脱与手部疲劳。",
+        "vi": "Áp dụng bề mặt vân nhám chống trượt, thiết kế vỏ cong 3D công thái học giảm mỏi cổ tay và cân bằng trọng tâm chống rơi.",
+        "th": "เพิ่มพื้นผิวกันลื่นแบบ Micro-texture ออกแบบเคสโค้งมน 3D ตามหลักสรีรศาสตร์ ลดความเมื่อยล้าและปรับสมดุลน้ำหนักไม่ให้เลื่อนหลุดง่าย",
+    },
+    "초기 등록/호환성 설정": {
+        "ko": "BLE 비콘 기반 Auto-Discovery 자동 등록 프로토콜 및 전 세계 12,000개 브랜드 TV 자동 매핑 스마트 페어링 펌웨어 탑재",
+        "en": "Implement BLE Beacon Auto-Discovery pairing protocol and automated cloud brand code mapping for 12,000+ global TV models.",
+        "zh": "搭载低功耗蓝牙广播自发现 (Auto-Discovery) 极速对码技术，云端内置全球 12,000+ 款电视品牌免设置自动适配固件。",
+        "vi": "Tích hợp giao thức tự động nhận diện thiết bị qua BLE Beacon và phần mềm đồng bộ tự động cho hơn 12,000 dòng TV toàn cầu.",
+        "th": "พัฒนาระบบค้นหาและจับคู่อัตโนมัติผ่าน BLE Beacon พร้อมเฟิร์มแวร์จับคู่โค้ดทีวีกว่า 12,000 รุ่นทั่วโลกโดยไม่ต้องตั้งค่าด้วยตนเอง",
+    },
+    "모션/터치 센서 감도": {
+        "ko": "6축 고정밀 MEMS IMU 채택, 실시간 지터 제거 칼만 필터(Kalman Filter) 및 자동 영점 복원 알고리즘 적용",
+        "en": "Integrate 6-axis precision MEMS IMU with real-time Kalman filtering and dynamic auto-zero drift compensation algorithms.",
+        "zh": "选用六轴高精度工业级 MEMS 传感器，引入实时卡尔曼滤波防抖算法与动态自动零点校准技术，消除光标漂移。",
+        "vi": "Sử dụng cảm biến chuyển động 6 trục MEMS độ chính xác cao, thuật toán lọc Kalman khử rung và tự động căn chỉnh trôi điểm chuẩn.",
+        "th": "ติดตั้งเซนเซอร์ 6 แกน MEMS ความแม่นยำสูง พร้อมอัลกอริทึม Kalman Filter ลดการสั่นไหวและระบบรีเซ็ตจุดศูนย์กลางอัตโนมัติ",
+    },
     "계정/업데이트/광고": {
         "ko": "원격 OTA 펌웨어 무중단 듀얼 뱅크(Dual-bank) 롤백 프로세스 구축으로 벽돌 현상 원천 방지",
         "en": "Implement Dual-bank zero-downtime OTA firmware rollback architecture preventing remote bricking risks.",
@@ -843,15 +930,4 @@ ACTION_RECOMMENDATIONS = {
         "vi": "Tiếp tục giám sát độ tin cậy chất lượng toàn diện.",
         "th": "ติดตามและเฝ้าระวังคุณภาพความน่าเชื่อถืออย่างต่อเนื่อง",
     }
-}
-
-REGIONS = {
-    "Korea": {"ko": "한국", "en": "Korea", "zh": "韩国", "vi": "Hàn Quốc", "th": "เกาหลี"},
-    "NA": {"ko": "북미", "en": "N. America", "zh": "北美", "vi": "Bắc Mỹ", "th": "อเมริกาเหนือ"},
-    "EU": {"ko": "유럽", "en": "Europe", "zh": "欧洲", "vi": "Châu Âu", "th": "ยุโรป"},
-    "Global": {"ko": "글로벌", "en": "Global", "zh": "全球", "vi": "Toàn cầu", "th": "ทั่วโลก"},
-    "Africa": {"ko": "아프리카", "en": "Africa", "zh": "非洲", "vi": "Châu Phi", "th": "แอฟริกา"},
-    "ASIA": {"ko": "아시아", "en": "Asia", "zh": "亚洲", "vi": "Châu Á", "th": "เอเชีย"},
-    "Japan": {"ko": "일본", "en": "Japan", "zh": "日本", "vi": "Nhật Bản", "th": "ญี่ปุ่น"},
-    "SCA": {"ko": "중남미", "en": "Latin America", "zh": "拉美", "vi": "Mỹ Latinh", "th": "ละตินอเมริกา"},
 }
