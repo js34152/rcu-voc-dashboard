@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 from collections import Counter
 from datetime import datetime
+import importlib
 import io
 import json
 import os
 import re
+import time
 import urllib.request
 import pandas as pd
 import plotly.express as px
@@ -14,18 +16,22 @@ from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.enum.text import PP_ALIGN
 from pptx.dml.color import RGBColor
+from pptx.enum.shapes import MSO_SHAPE
 from pptx.chart.data import CategoryChartData
 from pptx.enum.chart import XL_CHART_TYPE, XL_LEGEND_POSITION
 
-import importlib
 import translations as tr
+# 모듈 캐시 즉시 갱신
 importlib.reload(tr)
 
 # -------------------------------------------------------------
-# 0. 기본 설정 & 사내 보안 게이트 (암호: rcu2026!)
+# 0. 기본 환경 설정 & 경로 절대화 & 사내 보안 게이트 (v4.0)
 # -------------------------------------------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "voc_db.csv")
+
 st.set_page_config(
-    page_title="Global RCU VOC Intelligence v3.0",
+    page_title="Global RCU VOC Intelligence v4.0",
     page_icon="📡",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -42,11 +48,11 @@ LANG_OPTIONS = {
 if "lang" not in st.session_state:
     st.session_state["lang"] = "ko"
 
-# 사이드바 최상단 언어 선택 (로그인 전/후 공통 작동)
 selected_lang_label = st.sidebar.selectbox(
     "🌐 Language / 언어 선택",
     options=list(LANG_OPTIONS.keys()),
     index=list(LANG_OPTIONS.values()).index(st.session_state["lang"]),
+    key="global_lang_selector_widget",
 )
 curr_lang = LANG_OPTIONS[selected_lang_label]
 st.session_state["lang"] = curr_lang
@@ -100,7 +106,14 @@ def get_secret_api_key():
         return os.environ.get("GEMINI_API_KEY", "")
 
 
-RCU_PASSWORD = "rcu2026!"
+def get_rcu_password():
+    try:
+        return st.secrets.get("RCU_PASSWORD", "rcu2026!")
+    except Exception:
+        return os.environ.get("RCU_PASSWORD", "rcu2026!")
+
+
+RCU_PASSWORD = get_rcu_password()
 
 
 def check_password():
@@ -117,7 +130,7 @@ def check_password():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown("<br><br>", unsafe_allow_html=True)
-        st.title(txt("gate_title"))
+        st.title("🔒 Global RCU VOC Intelligence v4.0")
         st.markdown(f"##### {txt('gate_sub')}")
         st.info(txt("gate_info"))
 
@@ -140,7 +153,7 @@ def check_password():
 if not check_password():
     st.stop()
 
-if st.sidebar.button(txt("logout"), help=txt("logout_help")):
+if st.sidebar.button(txt("logout"), help=txt("logout_help"), key="btn_logout_top"):
     st.session_state["password_correct"] = False
     st.rerun()
 
@@ -241,7 +254,7 @@ def normalize_brand(name):
     return raw
 
 # -------------------------------------------------------------
-# 2. 지역별 Champions 매트릭스
+# 2. 지역별 Champions 매트릭스 & 정밀 분류 엔진 (13대 카테고리)
 # -------------------------------------------------------------
 REGIONAL_TOP3 = {
     "한국 (KR)": {
@@ -281,91 +294,59 @@ AFRICA_CHAMPIONS = sum(REGIONAL_TOP3["아프리카 (Africa)"].values(), [])
 
 def refine_category(text):
     t = str(text).lower()
-    if any(
-        w in t
-        for w in [
-            "pair", "connect", "bluetooth", "wifi", "offline", "drop",
-            "disconnect", "sync", "unpair", "network", "link", "lost",
-            "load shedding", "synchro", "verbindung", "페어링", "연결",
-        ]
-    ):
+
+    # 1. 모션 / 터치패드 / 자이로 센서 감도
+    if any(w in t for w in ["gyro", "pointer", "cursor", "air mouse", "magic remote", "drift", "calibration", "touchpad", "포인터", "커서", "마우스", "자이로", "영점", "터치패드", "민감", "쏠림"]):
+        return "모션/터치 센서 감도"
+
+    # 2. 그립감 / 인체공학 설계 (폼팩터, 미끄러짐, 소파 분실)
+    if any(w in t for w in ["grip", "slippery", "ergonomic", "couch", "cushion", "slip", "too small", "too thin", "holding", "comfort", "그립", "미끄러", "미끄럼", "작아서", "얇아서", "소파", "손목", "불편", "잡기", "빠짐"]):
+        return "그립감/인체공학 설계"
+
+    # 3. 초기 등록 / 호환성 설정 (셋업 가이드, 브랜드 코드 매핑)
+    if any(w in t for w in ["code", "program", "manual", "setup", "universal", "compatible", "compatibility", "stb", "등록", "호환", "호환성", "설명서", "코드", "설정", "세팅", "인식 안 됨"]):
+        return "초기 등록/호환성 설정"
+
+    # 4. 페어링 / 무선 연결
+    if any(w in t for w in ["pair", "connect", "bluetooth", "wifi", "offline", "drop", "disconnect", "sync", "unpair", "network", "link", "lost", "load shedding", "synchro", "verbindung", "페어링", "연결", "블루투스"]):
         return "페어링/연결 끊김"
-    if any(
-        w in t
-        for w in [
-            "lag", "slow", "freeze", "stuck", "delay", "unresponsive",
-            "hang", "epg", "verzögerung", "langsam", "지연", "렉",
-            "먹통", "느려", "멈춤",
-        ]
-    ):
+
+    # 5. 속도 / 지연 / 렉 / 먹통
+    if any(w in t for w in ["lag", "slow", "freeze", "stuck", "delay", "unresponsive", "hang", "epg", "latency", "buffering", "지연", "렉", "먹통", "느려", "멈춤", "반응"]):
         return "속도/지연/먹통"
-    if any(
-        w in t
-        for w in [
-            "volume", "mute", "cec", "hdmi", "turn on", "turn off",
-            "soundbar", "receiver", "tv", "power", "handshake", "lautstärke",
-            "볼륨", "소리", "전원", "외부입력",
-        ]
-    ):
+
+    # 6. 볼륨 / TV 전원 / HDMI-CEC 연동
+    if any(w in t for w in ["volume", "mute", "cec", "hdmi", "turn on", "turn off", "soundbar", "receiver", "tv", "power", "handshake", "lautstärke", "볼륨", "소리", "전원", "외부입력"]):
         return "볼륨/TV연동(CEC)"
-    if any(
-        w in t
-        for w in [
-            "range", "line of sight", "distance", "angle", "ir ", "signal",
-            "sensor", "aim", "reichweite", "수신", "거리", "각도", "정면",
-        ]
-    ):
+
+    # 7. 신호범위 / IR 적외선 센서
+    if any(w in t for w in ["range", "line of sight", "distance", "angle", "ir ", "signal", "sensor", "aim", "reichweite", "수신", "거리", "각도", "정면", "적외선"]):
         return "신호범위/IR센서"
-    if any(
-        w in t
-        for w in [
-            "button", "layout", "press", "key", "touch", "click", "backlight",
-            "ui", "screen", "dust", "sand", "stiff", "taste", "drücken",
-            "bouton", "버튼", "키", "터치", "클릭", "더블클릭", "채터링", "백라이트",
-        ]
-    ):
+
+    # 8. 물리 버튼 / 키감 / 채터링
+    if any(w in t for w in ["button", "layout", "press", "key", "click", "backlight", "chattering", "stiff", "눌러", "버튼", "키", "클릭", "더블클릭", "채터링", "백라이트", "씹힘", "함몰"]):
         return "버튼/UI 제어 불량"
-    if any(
-        w in t
-        for w in [
-            "battery", "power", "charge", "drain", "solar", "recharge",
-            "corrosion", "leak", "batterie", "akku", "pile", "배터리",
-            "건전지", "충전", "방전", "광탈", "누액", "부식",
-        ]
-    ):
+
+    # 9. 배터리 / 충전 / 누액
+    if any(w in t for w in ["battery", "charge", "drain", "solar", "recharge", "corrosion", "leak", "batterie", "akku", "pile", "배터리", "건전지", "충전", "방전", "광탈", "누액", "부식"]):
         return "배터리/전원"
-    if any(
-        w in t
-        for w in [
-            "voice", "mic", "alexa", "bixby", "siri", "assistant",
-            "voix", "stimme", "음성", "마이크", "인식", "기가지니", "클로바",
-        ]
-    ):
+
+    # 10. 음성 인식 / 마이크
+    if any(w in t for w in ["voice", "mic", "alexa", "bixby", "siri", "assistant", "voix", "stimme", "음성", "마이크", "인식", "기가지니", "클로바"]):
         return "음성 인식/마이크"
-    if any(
-        w in t
-        for w in [
-            "cheap", "plastic", "break", "broke", "drop", "fall",
-            "durability", "cassé", "kaputt", "깨짐", "파손", "마감", "부러", "내구성",
-        ]
-    ):
+
+    # 11. 내구성 / 하드웨어 파손
+    if any(w in t for w in ["cheap", "plastic", "break", "broke", "drop", "fall", "durability", "scratch", "깨짐", "파손", "마감", "부러", "내구성", "스크래치"]):
         return "내구성/하드웨어 퀄리티"
-    if any(
-        w in t
-        for w in [
-            "login", "sign in", "account", "update", "ad ", "mise à jour",
-            "업데이트", "계정", "광고",
-        ]
-    ):
+
+    # 12. 계정 / OTA 업데이트 / UI 광고
+    if any(w in t for w in ["login", "sign in", "account", "update", "ad ", "ota", "brick", "업데이트", "계정", "광고"]):
         return "계정/업데이트/광고"
-    if any(
-        w in t
-        for w in [
-            "app", "hotkey", "shortcut", "finder", "raccourci", "핫키",
-            "바로가기", "찾기", "비프음",
-        ]
-    ):
+
+    # 13. 전용 앱 핫키 / 편의 기능
+    if any(w in t for w in ["app", "hotkey", "shortcut", "finder", "raccourci", "핫키", "바로가기", "찾기", "비프음"]):
         return "단순 앱/기능 불만"
+
     return "기타/일반"
 
 
@@ -386,13 +367,13 @@ NOISE_FILTER_REGEX = re.compile(
 
 @st.cache_data(ttl=300)
 def load_accumulated_data():
-    if not os.path.exists("voc_db.csv"):
+    if not os.path.exists(DB_PATH):
         return pd.DataFrame()
 
     try:
-        df = pd.read_csv("voc_db.csv", encoding="utf-8-sig")
+        df = pd.read_csv(DB_PATH, encoding="utf-8-sig")
     except Exception:
-        df = pd.read_csv("voc_db.csv", encoding="utf-8")
+        df = pd.read_csv(DB_PATH, encoding="utf-8")
 
     if not df.empty:
         df = df[~df["Review"].astype(str).str.contains(NOISE_FILTER_REGEX)].copy()
@@ -418,9 +399,14 @@ def load_accumulated_data():
             df["Source"] = "Web / Community"
 
         if "Collected_Date" in df.columns:
-            df["Parsed_Date"] = pd.to_datetime(
-                df["Collected_Date"].str.slice(0, 10), errors="coerce"
+            cleaned_dates = (
+                df["Collected_Date"]
+                .astype(str)
+                .str.strip()
+                .str.extract(r"(\d{4}[-./]\d{1,2}[-./]\d{1,2})")[0]
+                .str.replace(r"[./]", "-", regex=True)
             )
+            df["Parsed_Date"] = pd.to_datetime(cleaned_dates, errors="coerce")
             df["Parsed_Date"] = df["Parsed_Date"].fillna(pd.Timestamp.now())
         else:
             df["Parsed_Date"] = pd.Timestamp.now()
@@ -428,14 +414,14 @@ def load_accumulated_data():
     return df
 
 
-df = load_accumulated_data()
-if df.empty:
-    st.warning("⚠️ 'voc_db.csv' is empty or missing.")
+df_all = load_accumulated_data()
+if df_all.empty:
+    st.warning(f"⚠️ '{DB_PATH}' is empty or missing.")
     st.stop()
 
 
 # -------------------------------------------------------------
-# Gemini AI 연동 엔진 (3줄 요약 & Root Cause 진단)
+# Gemini AI 연동 엔진 (텍스트 모델 전용 필터링 및 포맷 정밀화)
 # -------------------------------------------------------------
 def analyze_voc_with_gemini(api_key, client_name, p_issue, s_issue, sample_reviews, lang="ko"):
     api_key = str(api_key).strip().strip('"').strip("'")
@@ -468,15 +454,15 @@ Generate an executive technical diagnosis strictly in {target_lang_name}.
 Format the output into exactly three sections using Markdown:
 
 ### 📋 {sum_title}
-(Provide 3 concise, impactful bullet points summarizing the actual user pain points.)
+(Provide 3 concise, impactful bullet points summarizing the actual user pain points. Keep each bullet under 60 characters.)
 
 ### 🔬 {rc_title}
-(Provide 2-3 deep engineering root-cause diagnoses explaining the hardware/firmware bottlenecks, such as MCU wake-up jitter, BLE advertising/connection intervals, CEC handshake bus collisions, power management IC leakage, or metal dome debounce circuit timing.)
+(Provide 2-3 deep engineering root-cause diagnoses explaining the hardware/firmware bottlenecks, such as MCU wake-up jitter, BLE advertising/connection intervals, CEC handshake bus collisions, power management IC leakage, or metal dome debounce circuit timing. Keep each point under 110 characters.)
 
 ### 🎯 {st_title}
-(Provide 2 concrete technical differentiation proposals to decisively win the B2B supply contract over competitors.)
+(Provide 2 concrete technical differentiation proposals to decisively win the B2B supply contract over competitors. Keep each point under 110 characters.)
 
-Be concise, highly professional, and engineering-grade. Do not include fluff."""
+Be concise, highly professional, and engineering-grade. Do not include introductory fluff."""
 
     non_text_keywords = ["tts", "audio", "embed", "image", "imagen", "robotics", "realtime", "live"]
     active_models = []
@@ -552,236 +538,759 @@ Be concise, highly professional, and engineering-grade. Do not include fluff."""
 
 
 # -------------------------------------------------------------
-# PPTX 다국어 생성 엔진 (네이티브 벡터 차트 & AI 슬라이드 탑재)
+# PPTX 다국어 생성 엔진 (16:9 와이드 & '기타/일반' 원천 배제)
 # -------------------------------------------------------------
+COLOR_NAVY_DARK     = RGBColor(15, 23, 42)    # #0F172A
+COLOR_NAVY_SURFACE  = RGBColor(30, 41, 59)    # #1E293B
+COLOR_BG_PAGE       = RGBColor(248, 250, 252) # #F8FAFC
+COLOR_CARD_BG       = RGBColor(255, 255, 255) # #FFFFFF
+COLOR_BORDER        = RGBColor(226, 232, 240) # #E2E8F0
+COLOR_PRIMARY       = RGBColor(37, 99, 235)   # #2563EB Tech Blue
+COLOR_PRIMARY_LIGHT = RGBColor(239, 246, 255) # #EFF6FF
+COLOR_ACCENT_RED    = RGBColor(225, 29, 72)   # #E11D48
+COLOR_ACCENT_ORANGE = RGBColor(234, 88, 12)   # #EA580C
+COLOR_ACCENT_GREEN  = RGBColor(5, 150, 105)   # #059669
+COLOR_TEXT_MAIN     = RGBColor(15, 23, 42)    # #0F172A
+COLOR_TEXT_MUTED    = RGBColor(100, 116, 139) # #64748B
+COLOR_TEXT_WHITE    = RGBColor(255, 255, 255)
+
+FONT_FAMILY = "Malgun Gothic"
+
+
+def set_slide_bg(slide, rgb_color):
+    bg = slide.background
+    fill = bg.fill
+    fill.solid()
+    fill.fore_color.rgb = rgb_color
+
+
+def add_slide_header(slide, title_text, category_tag="RCU VOC INTELLIGENCE & B2B PROPOSAL", is_dark=False):
+    header_box = slide.shapes.add_textbox(Inches(0.8), Inches(0.42), Inches(11.733), Inches(0.95))
+    tf = header_box.text_frame
+    tf.word_wrap = True
+    tf.margin_left = tf.margin_top = tf.margin_right = tf.margin_bottom = 0
+
+    p_tag = tf.paragraphs[0]
+    p_tag.text = category_tag.upper()
+    p_tag.font.name = FONT_FAMILY
+    p_tag.font.size = Pt(9.5)
+    p_tag.font.bold = True
+    p_tag.font.color.rgb = RGBColor(96, 165, 250) if is_dark else COLOR_PRIMARY
+    p_tag.space_after = Pt(2)
+
+    p_title = tf.add_paragraph()
+    p_title.text = title_text
+    p_title.font.name = FONT_FAMILY
+    p_title.font.size = Pt(20)
+    p_title.font.bold = True
+    p_title.font.color.rgb = COLOR_TEXT_WHITE if is_dark else COLOR_TEXT_MAIN
+
+
+def add_card_container(slide, left, top, width, height, bg_color=COLOR_CARD_BG, border_color=COLOR_BORDER, corner_radius_in=0.18):
+    shape = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, left, top, width, height)
+    shape.fill.solid()
+    shape.fill.fore_color.rgb = bg_color
+    if border_color:
+        shape.line.color.rgb = border_color
+        shape.line.width = Pt(1)
+    else:
+        shape.line.fill.background()
+
+    try:
+        w_in = width.inches if hasattr(width, 'inches') else float(width) / 914400.0
+        h_in = height.inches if hasattr(height, 'inches') else float(height) / 914400.0
+        short_side = min(w_in, h_in)
+        if short_side > 0:
+            adj = corner_radius_in / short_side
+            adj = min(max(adj, 0.02), 0.15)
+            shape.adjustments[0] = adj
+    except Exception:
+        shape.adjustments[0] = 0.05
+    return shape
+
+
+def add_card_text_frame(slide, left, top, width, height, bg_color=COLOR_CARD_BG, border_color=COLOR_BORDER, pad_h=0.25, pad_v=0.20, corner_radius_in=0.18):
+    add_card_container(slide, left, top, width, height, bg_color, border_color, corner_radius_in=corner_radius_in)
+    tb = slide.shapes.add_textbox(
+        left + Inches(pad_h),
+        top + Inches(pad_v),
+        width - Inches(pad_h * 2),
+        height - Inches(pad_v * 2)
+    )
+    tf = tb.text_frame
+    tf.word_wrap = True
+    tf.margin_left = tf.margin_top = tf.margin_right = tf.margin_bottom = 0
+    return tf
+
+
+def parse_gemini_sections(text):
+    sec_1, sec_2, sec_3 = [], [], []
+    curr = None
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        lower = line.lower()
+        if "📋" in line or "요약" in line or "summary" in lower or "痛点" in line:
+            curr = 1
+            continue
+        elif "🔬" in line or "root cause" in lower or "원인" in line or "根因" in line or "nguyên nhân" in lower or "สาเหตุ" in line:
+            curr = 2
+            continue
+        elif "🎯" in line or "차별화" in line or "제언" in line or "strategy" in lower or "策略" in line or "đề xuất" in lower or "ข้อเสนอ" in line:
+            curr = 3
+            continue
+
+        clean = line.lstrip("-*•# ").strip()
+        if not clean:
+            continue
+        if curr == 1:
+            sec_1.append(clean)
+        elif curr == 2:
+            sec_2.append(clean)
+        elif curr == 3:
+            sec_3.append(clean)
+        else:
+            sec_1.append(clean)
+
+    if not sec_2 and not sec_3 and sec_1:
+        n = len(sec_1)
+        k1 = max(1, n // 3)
+        k2 = max(2, (2 * n) // 3)
+        sec_2 = sec_1[k1:k2]
+        sec_3 = sec_1[k2:]
+        sec_1 = sec_1[:k1]
+
+    return sec_1, sec_2, sec_3
+
+
 def create_pptx_deck(
-    client_name, p_issue, s_issue, p_sol, s_sol, pitch, reviews, cat_counts=None, ai_analysis=None, lang="ko"
+    client_name, p_issue, s_issue, p_sol, s_sol, pitch, reviews, cat_counts=None, ai_analysis=None, roi_data=None, lang="ko"
 ):
     prs = Presentation()
+    prs.slide_width = Inches(13.333)
+    prs.slide_height = Inches(7.5)
+
     t_titles = {
         "ko": {
-            "deck_title": f"[B2B Pitch 제안서]\n{client_name} RCU 품질 혁신 & UX 개선안",
+            "cover_tag": "GLOBAL RCU VOC INTELLIGENCE v4.0 | B2B STRATEGIC PROPOSAL",
+            "deck_title": f"고객 VOC 분석 Insight에 기반한 {client_name} RCU 상품 제안서",
+            "confidential": "사외비 (CONFIDENTIAL) - B2B 수주 심의용",
             "date": "작성일자", "target": "대상 고객사",
-            "s1_title": "1. 고객 핵심 취약점 (VoC Pain Points)",
-            "p_rank1": "🚨 1순위 결함 지수:", "p_rank2": "⚠️ 2순위 결함 지수:",
-            "reviews_header": "💬 현장 고객 대표 불만 원문:",
-            "s2_title": "2. 당사 R&D 기술 해결 솔루션", "sol_for": "대응 솔루션:",
-            "s3_title": "3. 임원 보고 / B2B 수주 맞춤 Pitch",
-            "exec_pitch": f"Executive Pitch for {client_name}",
+            "s1_tag": "VOICE OF CUSTOMER INTELLIGENCE",
+            "s1_title": f"1. {client_name} 고객 핵심 불만 및 취약점 분석 (VoC Pain Points)",
+            "rank1_badge": "🚨 1순위 핵심 결함", "rank2_badge": "⚠️ 2순위 핵심 결함",
+            "reviews_header": "💬 현장 고객 대표 불만 원문 (Voice of Customer)",
+            "chart_title": "정밀 기술 결함별 점유율 (Actionable Defect Distribution)",
             "chart_series": "불만 점유율", "others": "기타",
-            "ai_slide_title": "4. Gemini AI 심층 결함 원인 (Root Cause) 진단",
+            "s2_tag": "R&D TECHNICAL ROADMAP",
+            "s2_title": "2. 결함 원인별 차세대 H/W & F/W 기술 해결 솔루션",
+            "sol_heading": "당사 차세대 H/W & F/W 엔지니어링 솔루션",
+            "s3_tag": "EXECUTIVE VALUE PROPOSITION",
+            "s3_title": "3. 최고경영진(C-Level) 제안 및 기대효과 (Executive Pitch)",
+            "exec_pitch_title": f"EXECUTIVE STRATEGIC PITCH FOR {client_name.upper()}",
+            "p1_title": "📉 반품률 및 물류비 절감",
+            "p1_sub": "• 연간 RCU 불량 반품률 65%+ 억제\n• 실물 교체 및 왕복 물류 OPEX 대폭 절감\n• H/W 내구성 강화로 제품 수명 주기 연장",
+            "p2_title": "📞 CS 콜센터 인입률 차단",
+            "p2_sub": "• 페어링/방전 관련 고객 문의 원천 차단\n• 고객센터 1건당 상담 처리 원가 절감\n• 초기 설치 단계 고객 자가 해결률 향상",
+            "p3_title": "⭐ 가입자 NPS & 신뢰도 제고",
+            "p3_sub": "• 응답 지연·먹통 없는 쾌적한 미디어 경험\n• 고객 이탈 방지 및 유료 서비스 만족도 증대\n• 차세대 프리미엄 RCU 브랜드 이미지 구축",
+            "s4_tag": "FINANCIAL IMPACT & ROI SIMULATION",
+            "s4_title": f"4. {client_name} 가입자 기반 연간 ROI & OPEX 비용 절감 추정치",
+            "roi_card1_title": "💰 연간 총 OPEX 예상 절감액",
+            "roi_card2_title": "📞 연간 CS 문의 인입 예방",
+            "roi_card3_title": "📦 연간 불량 교체/반품 억제",
+            "s5_tag": "AI DEEP ROOT CAUSE DIAGNOSIS",
+            "s5_title": "5. Gemini AI 심층 결함 원인 (Root Cause) & 차별화 제언",
+            "col1_title": "📋 고객 VoC 핵심 요약",
+            "col2_title": "🔬 H/W & F/W Root Cause 진단",
+            "col3_title": "🎯 B2B 수주전 기술 차별화 제언",
         },
         "en": {
-            "deck_title": f"[B2B Pitch Proposal]\n{client_name} RCU Quality & UX Improvement",
-            "date": "Date", "target": "Target Brand",
-            "s1_title": "1. Core Customer Pain Points (VoC)",
-            "p_rank1": "🚨 1st Priority Defect Index:", "p_rank2": "⚠️ 2nd Priority Defect Index:",
-            "reviews_header": "💬 Representative Verbatim Complaints:",
-            "s2_title": "2. Proprietary R&D Engineering Countermeasures", "sol_for": "Technical Countermeasure:",
-            "s3_title": "3. Executive / B2B Proposal Pitch",
-            "exec_pitch": f"Executive Pitch for {client_name}",
+            "cover_tag": "GLOBAL RCU VOC INTELLIGENCE v4.0 | B2B STRATEGIC PROPOSAL",
+            "deck_title": f"RCU Product Proposal for {client_name} Based on Customer VoC Insights",
+            "confidential": "CONFIDENTIAL & PROPRIETARY - Strictly for B2B Evaluation",
+            "date": "Date", "target": "Target Client",
+            "s1_tag": "VOICE OF CUSTOMER INTELLIGENCE",
+            "s1_title": f"1. {client_name} Core Customer Pain Points & Defect Analysis",
+            "rank1_badge": "🚨 Rank 1 Primary Defect", "rank2_badge": "⚠️ Rank 2 Secondary Defect",
+            "reviews_header": "💬 Representative Field Customer Verbatim Reviews",
+            "chart_title": "Actionable Defect Share Distribution",
             "chart_series": "Complaint Share", "others": "Others",
-            "ai_slide_title": "4. Gemini AI Root Cause Engineering Diagnosis",
+            "s2_tag": "R&D TECHNICAL ROADMAP",
+            "s2_title": "2. Next-Gen H/W & F/W Engineering Countermeasures by Defect",
+            "sol_heading": "Proprietary Next-Gen H/W & F/W Engineering Countermeasures",
+            "s3_tag": "EXECUTIVE VALUE PROPOSITION",
+            "s3_title": "3. Executive Proposal & Strategic Value Drivers (Executive Pitch)",
+            "exec_pitch_title": f"EXECUTIVE STRATEGIC PITCH FOR {client_name.upper()}",
+            "p1_title": "📉 Lower Returns & Logistics OPEX",
+            "p1_sub": "• 65%+ reduction in defect return rates\n• Substantial savings in replacement logistics\n• Extended lifecycle via robust industrial design",
+            "p2_title": "📞 Drastic CS Call Reduction",
+            "p2_sub": "• Eliminate pairing and battery drain inquiries\n• Decrease per-ticket customer support overhead\n• Maximize first-time setup self-service success",
+            "p3_title": "⭐ Superior NPS & Retention",
+            "p3_sub": "• Latency-free, premium navigation experience\n• Prevent subscriber churn and bolster loyalty\n• Position the brand as a top-tier media provider",
+            "s4_tag": "FINANCIAL IMPACT & ROI SIMULATION",
+            "s4_title": f"4. Estimated Annual OPEX Savings & Financial ROI for {client_name}",
+            "roi_card1_title": "💰 Total Annual OPEX Saved",
+            "roi_card2_title": "📞 Annual CS Calls Prevented",
+            "roi_card3_title": "📦 Annual Hardware Swaps Avoided",
+            "s5_tag": "AI DEEP ROOT CAUSE DIAGNOSIS",
+            "s5_title": "5. Gemini AI Deep Defect Root Cause & Strategic Recommendations",
+            "col1_title": "📋 Core VoC Pain Points",
+            "col2_title": "🔬 H/W & F/W Root Cause Diagnosis",
+            "col3_title": "🎯 B2B Differentiation Strategy",
         },
         "zh": {
-            "deck_title": f"[B2B 定制竞标提案]\n{client_name} 遥控器品质与用户体验革新方案",
+            "cover_tag": "GLOBAL RCU VOC INTELLIGENCE v4.0 | B2B STRATEGIC PROPOSAL",
+            "deck_title": f"基于客户 VoC 洞察的 {client_name} 遥控器产品方案建议书",
+            "confidential": "机密 (CONFIDENTIAL) - 仅限商务竞标评估",
             "date": "编制日期", "target": "目标品牌",
-            "s1_title": "1. 核心客户痛点 (VoC Pain Points)",
-            "p_rank1": "🚨 第一缺陷指标:", "p_rank2": "⚠️ 第二缺陷指标:",
-            "reviews_header": "💬 现场典型用户痛点原声:",
-            "s2_title": "2. 我方 R&D 核心技术应对方案", "sol_for": "针对性应对方案:",
-            "s3_title": "3. 高管汇报与商务竞标 Pitch",
-            "exec_pitch": f"Executive Pitch for {client_name}",
+            "s1_tag": "VOICE OF CUSTOMER INTELLIGENCE",
+            "s1_title": f"1. {client_name} 客户核心痛点与缺陷深度分析 (VoC)",
+            "rank1_badge": "🚨 第一核心缺陷", "rank2_badge": "⚠️ 第二核心缺陷",
+            "reviews_header": "💬 现场典型用户痛点原声 (Verbatim VoC)",
+            "chart_title": "可行动技术缺陷占比分布 (Actionable Defect Distribution)",
             "chart_series": "负面占比", "others": "其他",
-            "ai_slide_title": "4. Gemini AI 缺陷根因与工程诊断 (Root Cause)",
+            "s2_tag": "R&D TECHNICAL ROADMAP",
+            "s2_title": "2. 针对缺陷根因的下一代软硬件核心技术方案",
+            "sol_heading": "我方下一代软硬件一体化工程解决方案",
+            "s3_tag": "EXECUTIVE VALUE PROPOSITION",
+            "s3_title": "3. 面向高管层的商务竞标价值主张与收益 (Executive Pitch)",
+            "exec_pitch_title": f"EXECUTIVE STRATEGIC PITCH FOR {client_name.upper()}",
+            "p1_title": "📉 大幅降低退货与物流成本",
+            "p1_sub": "• 减少65%以上的遥控器故障退换货率\n• 显著节省售后换货往返物流运营支出\n• 增强硬件耐久度，延长整体产品生命周期",
+            "p2_title": "📞 遏制呼叫中心客服接入率",
+            "p2_sub": "• 从源头消除配对断连与电池耗电咨询\n• 降低每通客服工单处理综合成本\n• 提升用户初次开机配对自助成功率",
+            "p3_title": "⭐ 提升净推荐值(NPS)与品牌美誉",
+            "p3_sub": "• 无延迟、不卡顿的极致交互操控体验\n• 有效防范付费用户流失，增强品牌黏性\n• 确立行业领先的高端遥控器标杆品质",
+            "s4_tag": "FINANCIAL IMPACT & ROI SIMULATION",
+            "s4_title": f"4. {client_name} 基于在网用户的年度运营成本(OPEX)削减效益测算",
+            "roi_card1_title": "💰 预计年度 OPEX 节省总额",
+            "roi_card2_title": "📞 预计减少年度客服工单",
+            "roi_card3_title": "📦 预计减少故障退换物流",
+            "s5_tag": "AI DEEP ROOT CAUSE DIAGNOSIS",
+            "s5_title": "5. Gemini AI 缺陷深层根因 (Root Cause) 与竞标差异化建议",
+            "col1_title": "📋 客户核心痛点要约",
+            "col2_title": "🔬 软硬件工程深层根因剖析",
+            "col3_title": "🎯 B2B 竞标技术差异化建议",
         },
         "vi": {
-            "deck_title": f"[Đề Xuất Dự Án B2B]\nGiải pháp nâng cao chất lượng & UX điều khiển RCU {client_name}",
+            "cover_tag": "GLOBAL RCU VOC INTELLIGENCE v4.0 | B2B STRATEGIC PROPOSAL",
+            "deck_title": f"Đề xuất sản phẩm điều khiển RCU cho {client_name} dựa trên phân tích VoC khách hàng",
+            "confidential": "BẢO MẬT (CONFIDENTIAL) - Dành riêng cho đánh giá B2B",
             "date": "Ngày lập", "target": "Thương hiệu mục tiêu",
-            "s1_title": "1. Điểm đau cốt lõi của khách hàng (VoC)",
-            "p_rank1": "🚨 Lỗi ưu tiên 1:", "p_rank2": "⚠️ Lỗi ưu tiên 2:",
-            "reviews_header": "💬 Trích dẫn khiếu nại thực tế từ khách hàng:",
-            "s2_title": "2. Giải pháp kỹ thuật R&D từ chúng tôi", "sol_for": "Giải pháp kỹ thuật cho",
-            "s3_title": "3. Kịch bản Pitch đàm phán B2B & Báo cáo lãnh đạo",
-            "exec_pitch": f"Executive Pitch for {client_name}",
+            "s1_tag": "VOICE OF CUSTOMER INTELLIGENCE",
+            "s1_title": f"1. Điểm đau cốt lõi & Phân tích lỗi khách hàng {client_name} (VoC)",
+            "rank1_badge": "🚨 Lỗi trọng yếu số 1", "rank2_badge": "⚠️ Lỗi trọng yếu số 2",
+            "reviews_header": "💬 Trích dẫn khiếu nại thực tế từ khách hàng",
+            "chart_title": "Phân bố tỷ lệ lỗi kỹ thuật trọng yếu",
             "chart_series": "Tỷ lệ lỗi", "others": "Khác",
-            "ai_slide_title": "4. Chẩn Đoán Lỗi Gốc Rễ Bằng Gemini AI",
+            "s2_tag": "R&D TECHNICAL ROADMAP",
+            "s2_title": "2. Giải pháp kỹ thuật H/W & F/W thế hệ mới theo nguyên nhân lỗi",
+            "sol_heading": "Giải pháp kỹ thuật H/W & F/W thế hệ mới từ chúng tôi",
+            "s3_tag": "EXECUTIVE VALUE PROPOSITION",
+            "s3_title": "3. Đề xuất đàm phán lãnh đạo C-Level & Giá trị chiến lược",
+            "exec_pitch_title": f"EXECUTIVE STRATEGIC PITCH FOR {client_name.upper()}",
+            "p1_title": "📉 Giảm tỷ lệ đổi trả & Logistics",
+            "p1_sub": "• Giảm hơn 65% tỷ lệ đổi trả do lỗi điều khiển\n• Tiết kiệm tối đa chi phí logistics đổi hàng\n• Nâng cao độ bền phần cứng, kéo dài tuổi thọ",
+            "p2_title": "📞 Cắt giảm cuộc gọi đến tổng đài CS",
+            "p2_sub": "• Loại bỏ thắc mắc về lỗi kết nối và hao pin\n• Giảm chi phí xử lý mỗi cuộc gọi hỗ trợ\n• Tăng tỷ lệ người dùng tự cài đặt thành công",
+            "p3_title": "⭐ Nâng cao chỉ số NPS & Giữ chân thuê bao",
+            "p3_sub": "• Trải nghiệm điều hướng mượt mà, không độ trễ\n• Ngăn ngừa rời mạng và giữ chân thuê bao VIP\n• Khẳng định hình ảnh thương hiệu cao cấp",
+            "s4_tag": "FINANCIAL IMPACT & ROI SIMULATION",
+            "s4_title": f"4. Ước tính Tiết Kiệm Chi Phí OPEX & ROI Hàng Năm cho {client_name}",
+            "roi_card1_title": "💰 Tổng OPEX Tiết Kiệm Dự Kiến",
+            "roi_card2_title": "📞 Số Cuộc Gọi CS Được Ngăn Ngừa",
+            "roi_card3_title": "📦 Số Lượt Đổi Trả Được Cắt Giảm",
+            "s5_tag": "AI DEEP ROOT CAUSE DIAGNOSIS",
+            "s5_title": "5. Chẩn đoán lỗi gốc rễ (Root Cause) & Đề xuất từ Gemini AI",
+            "col1_title": "📋 Tóm tắt điểm đau VoC",
+            "col2_title": "🔬 Chẩn đoán gốc rễ H/W & F/W",
+            "col3_title": "🎯 Đề xuất kỹ thuật tạo khác biệt B2B",
         },
         "th": {
-            "deck_title": f"[ข้อเสนอโครงการ B2B]\nแนวทางยกระดับคุณภาพและ UX รีโมทคอนโทรลสำหรับ {client_name}",
+            "cover_tag": "GLOBAL RCU VOC INTELLIGENCE v4.0 | B2B STRATEGIC PROPOSAL",
+            "deck_title": f"ข้อเสนอผลิตภัณฑ์รีโมทคอนโทรลสำหรับ {client_name} โดยอิงข้อมูลเชิงลึก VoC ของลูกค้า",
+            "confidential": "เอกสารลับ (CONFIDENTIAL) - สำหรับการประเมินโครงการ B2B",
             "date": "วันที่จัดทำ", "target": "แบรนด์เป้าหมาย",
-            "s1_title": "1. ปัญหาสำคัญที่ลูกค้าพบ (VoC Pain Points)",
-            "p_rank1": "🚨 ดัชนีข้อบกพร่องอันดับ 1:", "p_rank2": "⚠️ ดัชนีข้อบกพร่องอันดับ 2:",
-            "reviews_header": "💬 ข้อความจริงจากลูกค้าที่ใช้งาน:",
-            "s2_title": "2. โซลูชันทางเทคนิคจากทีม R&D ของเรา", "sol_for": "โซลูชันสำหรับ",
-            "s3_title": "3. สคริปต์นำเสนอผู้บริหารและการเจรจา B2B",
-            "exec_pitch": f"Executive Pitch for {client_name}",
+            "s1_tag": "VOICE OF CUSTOMER INTELLIGENCE",
+            "s1_title": f"1. การวิเคราะห์จุดบกพร่องและปัญหาสำคัญของผู้ใช้งาน {client_name} (VoC)",
+            "rank1_badge": "🚨 ข้อบกพร่องวิกฤตอันดับ 1", "rank2_badge": "⚠️ ข้อบกพร่องวิกฤตอันดับ 2",
+            "reviews_header": "💬 ข้อความสะท้อนปัญหาจริงจากผู้ใช้งาน",
+            "chart_title": "สัดส่วนข้อบกพร่องทางเทคนิคที่สามารถแก้ไขได้",
             "chart_series": "สัดส่วนข้อร้องเรียน", "others": "อื่นๆ",
-            "ai_slide_title": "4. การวินิจฉัยสาเหตุที่แท้จริงด้วย Gemini AI",
+            "s2_tag": "R&D TECHNICAL ROADMAP",
+            "s2_title": "2. โซลูชันวิศวกรรม H/W & F/W ยุคใหม่ตรงจุดตามสาเหตุข้อบกพร่อง",
+            "sol_heading": "โซลูชันวิศวกรรม H/W & F/W รุ่นใหม่จากเรา",
+            "s3_tag": "EXECUTIVE VALUE PROPOSITION",
+            "s3_title": "3. ข้อเสนอต่อผู้บริหารระดับสูง (C-Level) และผลประโยชน์เชิงกลยุทธ์",
+            "exec_pitch_title": f"EXECUTIVE STRATEGIC PITCH FOR {client_name.upper()}",
+            "p1_title": "📉 ลดอัตราการคืนสินค้าและค่าขนส่ง",
+            "p1_sub": "• ลดอัตราการเคลมและคืนสินค้ามากกว่า 65%\n• ประหยัดค่าใช้จ่ายด้านโลจิสติกส์เปลี่ยนอุปกรณ์\n• เพิ่มความทนทานของ H/W ยืดอายุการใช้งาน",
+            "p2_title": "📞 ตัดปัญหาการโทรเข้าศูนย์บริการลูกค้า",
+            "p2_sub": "• ขจัดปัญหาข้อสงสัยเรื่องการจับคู่และแบตเตอรี่\n• ลดต้นทุนต่อสายในการให้บริการลูกค้า\n• เพิ่มอัตราความสำเร็จในการติดตั้งด้วยตนเอง",
+            "p3_title": "⭐ เพิ่มคะแนน NPS และความภักดีต่อแบรนด์",
+            "p3_sub": "• ประสบการณ์ควบคุมลื่นไหล ปราศจากความหน่วง\n• ป้องกันการยกเลิกบริการและเพิ่มความพึงพอใจ\n• สร้างภาพลักษณ์แบรนด์รีโมทระดับพรีเมียม",
+            "s4_tag": "FINANCIAL IMPACT & ROI SIMULATION",
+            "s4_title": f"4. ประมาณการผลตอบแทน ROI และการลดต้นทุน OPEX รายปีสำหรับ {client_name}",
+            "roi_card1_title": "💰 ยอดรวม OPEX ที่ประหยัดได้ต่อปี",
+            "roi_card2_title": "📞 ปริมาณการโทรเข้า CS ที่ลดลง",
+            "roi_card3_title": "📦 การเปลี่ยน/คืนสินค้าที่ลดลง",
+            "s5_tag": "AI DEEP ROOT CAUSE DIAGNOSIS",
+            "s5_title": "5. การวินิจฉัยสาเหตุเชิงลึก (Root Cause) และข้อเสนอเชิงกลยุทธ์โดย Gemini AI",
+            "col1_title": "📋 สรุปประเด็นปัญหาสำคัญ (VoC)",
+            "col2_title": "🔬 วินิจฉัยสาเหตุเชิงลึก H/W & F/W",
+            "col3_title": "🎯 ข้อเสนอสร้างความแตกต่างเชิงเทคนิค B2B",
         },
     }
     L = t_titles.get(lang, t_titles["en"])
-
-    # Slide 1: Cover
-    slide = prs.slides.add_slide(prs.slide_layouts[0])
-    slide.background.fill.solid()
-    slide.background.fill.fore_color.rgb = RGBColor(240, 244, 248)
-    slide.shapes.title.text = L["deck_title"]
-    slide.shapes.title.text_frame.paragraphs[0].font.size = Pt(32)
-    slide.shapes.title.text_frame.paragraphs[0].font.bold = True
-    slide.shapes.title.text_frame.paragraphs[0].font.color.rgb = RGBColor(31, 119, 180)
     today_date = datetime.now().strftime("%Y-%m-%d")
-    date_lbl = L["date"]
-    target_lbl = L["target"]
-    slide.placeholders[1].text = f"{date_lbl}: {today_date}\n{target_lbl}: {client_name}"
 
-    # Slide 2: VoC Pain Points + Native Vector Doughnut Chart
-    slide2 = prs.slides.add_slide(prs.slide_layouts[6])
-    slide2.background.fill.solid()
-    slide2.background.fill.fore_color.rgb = RGBColor(255, 255, 255)
+    # =========================================================
+    # SLIDE 1: Cover
+    # =========================================================
+    slide1 = prs.slides.add_slide(prs.slide_layouts[6])
+    set_slide_bg(slide1, COLOR_NAVY_DARK)
 
-    title_box = slide2.shapes.add_textbox(Inches(0.8), Inches(0.5), Inches(8.5), Inches(0.8))
-    p_t = title_box.text_frame.paragraphs[0]
-    p_t.text = L["s1_title"]
-    p_t.font.size = Pt(22)
+    tag_box = slide1.shapes.add_textbox(Inches(0.8), Inches(1.1), Inches(11.733), Inches(0.5))
+    p_t = tag_box.text_frame.paragraphs[0]
+    p_t.text = L["cover_tag"]
+    p_t.font.name = FONT_FAMILY
+    p_t.font.size = Pt(11)
     p_t.font.bold = True
-    p_t.font.color.rgb = RGBColor(31, 119, 180)
+    p_t.font.color.rgb = RGBColor(96, 165, 250)
 
-    # Left Column: Text Pain Points
-    left_box = slide2.shapes.add_textbox(Inches(0.8), Inches(1.5), Inches(4.5), Inches(5.2))
-    tf2 = left_box.text_frame
-    tf2.word_wrap = True
-    p = tf2.paragraphs[0]
-    p.text = f"{L['p_rank1']} {p_issue}"
-    p.font.size = Pt(17)
+    title_box = slide1.shapes.add_textbox(Inches(0.8), Inches(1.8), Inches(11.733), Inches(2.6))
+    tf1 = title_box.text_frame
+    tf1.word_wrap = True
+    p_title = tf1.paragraphs[0]
+    p_title.text = L["deck_title"]
+    p_title.font.name = FONT_FAMILY
+    p_title.font.size = Pt(32)
+    p_title.font.bold = True
+    p_title.font.color.rgb = COLOR_TEXT_WHITE
+
+    tf_meta = add_card_text_frame(
+        slide1, Inches(0.8), Inches(5.1), Inches(11.733), Inches(1.5),
+        bg_color=COLOR_NAVY_SURFACE, border_color=RGBColor(51, 65, 85), pad_h=0.3, pad_v=0.25, corner_radius_in=0.18
+    )
+    p_m1 = tf_meta.paragraphs[0]
+    p_m1.text = f"🎯 {L['target']}: {client_name}   |   📅 {L['date']}: {today_date}"
+    p_m1.font.name = FONT_FAMILY
+    p_m1.font.size = Pt(12)
+    p_m1.font.bold = True
+    p_m1.font.color.rgb = COLOR_TEXT_WHITE
+    p_m1.space_after = Pt(6)
+
+    p_m2 = tf_meta.add_paragraph()
+    p_m2.text = f"🔒 {L['confidential']} · Global RCU Intelligence Platform v4.0"
+    p_m2.font.name = FONT_FAMILY
+    p_m2.font.size = Pt(10)
+    p_m2.font.color.rgb = RGBColor(148, 163, 184)
+
+    # =========================================================
+    # SLIDE 2: VoC Pain Points & Native Vector Doughnut Chart ('기타/일반' 배제)
+    # =========================================================
+    slide2 = prs.slides.add_slide(prs.slide_layouts[6])
+    set_slide_bg(slide2, COLOR_BG_PAGE)
+    add_slide_header(slide2, L["s1_title"], L["s1_tag"])
+
+    tf_kpi1 = add_card_text_frame(
+        slide2, Inches(0.8), Inches(1.5), Inches(5.6), Inches(1.2),
+        bg_color=COLOR_CARD_BG, border_color=RGBColor(254, 202, 202), pad_h=0.25, pad_v=0.18, corner_radius_in=0.18
+    )
+    p = tf_kpi1.paragraphs[0]
+    p.text = L["rank1_badge"]
+    p.font.name = FONT_FAMILY
+    p.font.size = Pt(9.5)
     p.font.bold = True
-    p.font.color.rgb = RGBColor(214, 39, 40)
+    p.font.color.rgb = COLOR_ACCENT_RED
+    p.space_after = Pt(2)
+    p = tf_kpi1.add_paragraph()
+    p.text = str(p_issue)
+    p.font.name = FONT_FAMILY
+    p.font.size = Pt(16)
+    p.font.bold = True
+    p.font.color.rgb = COLOR_TEXT_MAIN
+
     if s_issue:
-        p = tf2.add_paragraph()
-        p.text = f"{L['p_rank2']} {s_issue}"
-        p.font.size = Pt(17)
-        p.font.bold = True
-        p.font.color.rgb = RGBColor(255, 127, 14)
-    p = tf2.add_paragraph()
-    p.text = ""
-    p = tf2.add_paragraph()
-    p.text = L["reviews_header"]
-    p.font.size = Pt(15)
-    p.font.bold = True
-    for r in reviews:
-        p = tf2.add_paragraph()
-        p.text = f'  - "{r}"'
-        p.font.size = Pt(12)
-        p.font.italic = True
-        p.font.color.rgb = RGBColor(90, 90, 90)
-
-    # Right Column: Native Vector Doughnut Chart
-    if cat_counts is not None and not cat_counts.empty:
-        chart_data = CategoryChartData()
-        top_cats = cat_counts.head(3)
-        other_cnt = cat_counts.iloc[3:].sum() if len(cat_counts) > 3 else 0
-
-        cat_labels = [tr.CATEGORIES.get(k, {}).get(lang, k) for k in top_cats.index]
-        cat_vals = list(top_cats.values)
-        if other_cnt > 0:
-            cat_labels.append(L["others"])
-            cat_vals.append(other_cnt)
-
-        chart_data.categories = cat_labels
-        chart_data.add_series(L["chart_series"], cat_vals)
-
-        chart_shape = slide2.shapes.add_chart(
-            XL_CHART_TYPE.DOUGHNUT, Inches(5.4), Inches(1.5), Inches(4.2), Inches(4.8), chart_data
+        tf_kpi2 = add_card_text_frame(
+            slide2, Inches(0.8), Inches(2.82), Inches(5.6), Inches(1.2),
+            bg_color=COLOR_CARD_BG, border_color=RGBColor(254, 215, 170), pad_h=0.25, pad_v=0.18, corner_radius_in=0.18
         )
-        chart = chart_shape.chart
-        chart.has_legend = True
-        chart.legend.position = XL_LEGEND_POSITION.BOTTOM
-        chart.legend.font.size = Pt(9)
-        chart.legend.include_in_layout = False
-
-        plot = chart.plots[0]
-        plot.has_data_labels = True
-        plot.data_labels.font.size = Pt(9)
-        plot.data_labels.font.bold = True
-        plot.data_labels.show_percentage = True
-        plot.data_labels.show_value = False
-
-    # Slide 3: R&D Solutions
-    slide3 = prs.slides.add_slide(prs.slide_layouts[1])
-    slide3.shapes.title.text = L["s2_title"]
-    tf3 = slide3.placeholders[1].text_frame
-    tf3.clear()
-    p = tf3.add_paragraph()
-    sol_lbl = L["sol_for"]
-    p.text = f"✔️ [{p_issue}] {sol_lbl}"
-    p.font.size = Pt(18)
-    p.font.bold = True
-    p.font.color.rgb = RGBColor(44, 160, 44)
-    p = tf3.add_paragraph()
-    p.text = f"  {p_sol}"
-    p.font.size = Pt(15)
-    if s_issue:
-        p = tf3.add_paragraph()
-        p.text = ""
-        p = tf3.add_paragraph()
-        p.text = f"✔️ [{s_issue}] {sol_lbl}"
-        p.font.size = Pt(18)
+        p = tf_kpi2.paragraphs[0]
+        p.text = L["rank2_badge"]
+        p.font.name = FONT_FAMILY
+        p.font.size = Pt(9.5)
         p.font.bold = True
-        p.font.color.rgb = RGBColor(44, 160, 44)
-        p = tf3.add_paragraph()
-        p.text = f"  {s_sol}"
-        p.font.size = Pt(15)
+        p.font.color.rgb = COLOR_ACCENT_ORANGE
+        p.space_after = Pt(2)
+        p = tf_kpi2.add_paragraph()
+        p.text = str(s_issue)
+        p.font.name = FONT_FAMILY
+        p.font.size = Pt(16)
+        p.font.bold = True
+        p.font.color.rgb = COLOR_TEXT_MAIN
 
-    # Slide 4: Executive Pitch
-    slide4 = prs.slides.add_slide(prs.slide_layouts[1])
-    slide4.shapes.title.text = L["s3_title"]
-    sp = slide4.placeholders[1].element
-    sp.getparent().remove(sp)
-    txBox = slide4.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(3.5))
-    txBox.fill.solid()
-    txBox.fill.fore_color.rgb = RGBColor(245, 245, 245)
-    txBox.line.color.rgb = RGBColor(31, 119, 180)
-    txBox.line.width = Pt(2)
-    tf4 = txBox.text_frame
-    tf4.word_wrap = True
-    p = tf4.add_paragraph()
-    p.text = L["exec_pitch"]
-    p.font.size = Pt(18)
+    rev_top = Inches(4.14) if s_issue else Inches(2.82)
+    rev_h = Inches(2.76) if s_issue else Inches(4.08)
+    tf_rev = add_card_text_frame(
+        slide2, Inches(0.8), rev_top, Inches(5.6), rev_h,
+        pad_h=0.25, pad_v=0.18, corner_radius_in=0.18
+    )
+    p = tf_rev.paragraphs[0]
+    p.text = L["reviews_header"]
+    p.font.name = FONT_FAMILY
+    p.font.size = Pt(11)
     p.font.bold = True
-    p.font.color.rgb = RGBColor(31, 119, 180)
-    p = tf4.add_paragraph()
-    p.text = ""
-    p = tf4.add_paragraph()
+    p.font.color.rgb = COLOR_PRIMARY
+    p.space_after = Pt(6)
+
+    for r in reviews[:3]:
+        r_clean = str(r).replace('\n', ' ').strip()
+        if len(r_clean) > 85:
+            r_clean = r_clean[:82] + "..."
+        p = tf_rev.add_paragraph()
+        p.text = f'• "{r_clean}"'
+        p.font.name = FONT_FAMILY
+        p.font.size = Pt(9.5)
+        p.font.italic = True
+        p.font.color.rgb = RGBColor(71, 85, 105)
+        p.space_after = Pt(4)
+
+    add_card_container(slide2, Inches(6.8), Inches(1.5), Inches(5.733), Inches(5.4), corner_radius_in=0.18)
+    title_chart_box = slide2.shapes.add_textbox(Inches(7.15), Inches(1.75), Inches(5.0), Inches(0.4))
+    tf_ct = title_chart_box.text_frame
+    tf_ct.margin_left = tf_ct.margin_top = tf_ct.margin_right = tf_ct.margin_bottom = 0
+    p = tf_ct.paragraphs[0]
+    p.text = L["chart_title"]
+    p.font.name = FONT_FAMILY
+    p.font.size = Pt(12)
+    p.font.bold = True
+    p.font.color.rgb = COLOR_TEXT_MAIN
+
+    # '기타/일반'이 배제된 순수 기술 결함 차트 데이터 바인딩
+    if cat_counts is not None and not cat_counts.empty:
+        valid_counts = cat_counts[cat_counts.index != "기타/일반"]
+        if not valid_counts.empty:
+            chart_data = CategoryChartData()
+            top_cats = valid_counts.head(4)
+            other_cnt = valid_counts.iloc[4:].sum() if len(valid_counts) > 4 else 0
+
+            cat_labels = [tr.CATEGORIES.get(k, {}).get(lang, k) for k in top_cats.index]
+            cat_vals = list(top_cats.values)
+            if other_cnt > 0:
+                cat_labels.append(L["others"])
+                cat_vals.append(other_cnt)
+
+            chart_data.categories = cat_labels
+            chart_data.add_series(L["chart_series"], cat_vals)
+
+            chart_shape = slide2.shapes.add_chart(
+                XL_CHART_TYPE.DOUGHNUT, Inches(7.15), Inches(2.2), Inches(5.0), Inches(4.4), chart_data
+            )
+            chart = chart_shape.chart
+            chart.has_legend = True
+            chart.legend.position = XL_LEGEND_POSITION.BOTTOM
+            chart.legend.font.name = FONT_FAMILY
+            chart.legend.font.size = Pt(8.5)
+            chart.legend.include_in_layout = False
+
+            plot = chart.plots[0]
+            plot.has_data_labels = True
+            plot.data_labels.font.name = FONT_FAMILY
+            plot.data_labels.font.size = Pt(8.5)
+            plot.data_labels.font.bold = True
+            plot.data_labels.show_percentage = True
+            plot.data_labels.show_value = False
+
+    # =========================================================
+    # SLIDE 3: R&D Solutions
+    # =========================================================
+    slide3 = prs.slides.add_slide(prs.slide_layouts[6])
+    set_slide_bg(slide3, COLOR_BG_PAGE)
+    add_slide_header(slide3, L["s2_title"], L["s2_tag"])
+
+    card_w = Inches(5.66)
+    card_h = Inches(5.4)
+
+    tf_sol1 = add_card_text_frame(
+        slide3, Inches(0.8), Inches(1.5), card_w, card_h,
+        pad_h=0.3, pad_v=0.25, corner_radius_in=0.18
+    )
+    p = tf_sol1.paragraphs[0]
+    p.text = f"{L['rank1_badge']}: {p_issue}"
+    p.font.name = FONT_FAMILY
+    p.font.size = Pt(15)
+    p.font.bold = True
+    p.font.color.rgb = COLOR_ACCENT_RED
+    p.space_after = Pt(10)
+
+    p = tf_sol1.add_paragraph()
+    p.text = f"🛠️ {L['sol_heading']}"
+    p.font.name = FONT_FAMILY
+    p.font.size = Pt(11.5)
+    p.font.bold = True
+    p.font.color.rgb = COLOR_ACCENT_GREEN
+    p.space_after = Pt(8)
+
+    p_sol_clean = str(p_sol).strip()
+    if p_sol_clean:
+        p = tf_sol1.add_paragraph()
+        p.text = p_sol_clean
+        p.font.name = FONT_FAMILY
+        p.font.size = Pt(10.5)
+        p.font.color.rgb = COLOR_TEXT_MAIN
+        p.space_after = Pt(6)
+
+    tf_sol2 = add_card_text_frame(
+        slide3, Inches(6.866), Inches(1.5), card_w, card_h,
+        pad_h=0.3, pad_v=0.25, corner_radius_in=0.18
+    )
+    if s_issue:
+        p = tf_sol2.paragraphs[0]
+        p.text = f"{L['rank2_badge']}: {s_issue}"
+        p.font.name = FONT_FAMILY
+        p.font.size = Pt(15)
+        p.font.bold = True
+        p.font.color.rgb = COLOR_ACCENT_ORANGE
+        p.space_after = Pt(10)
+
+        p = tf_sol2.add_paragraph()
+        p.text = f"🛠️ {L['sol_heading']}"
+        p.font.name = FONT_FAMILY
+        p.font.size = Pt(11.5)
+        p.font.bold = True
+        p.font.color.rgb = COLOR_ACCENT_GREEN
+        p.space_after = Pt(8)
+
+        s_sol_clean = str(s_sol).strip()
+        if s_sol_clean:
+            p = tf_sol2.add_paragraph()
+            p.text = s_sol_clean
+            p.font.name = FONT_FAMILY
+            p.font.size = Pt(10.5)
+            p.font.color.rgb = COLOR_TEXT_MAIN
+    else:
+        p = tf_sol2.paragraphs[0]
+        p.text = "🛡️ Total Quality & Reliability Assurance"
+        p.font.name = FONT_FAMILY
+        p.font.size = Pt(15)
+        p.font.bold = True
+        p.font.color.rgb = COLOR_PRIMARY
+        p.space_after = Pt(10)
+        p = tf_sol2.add_paragraph()
+        p.text = "당사 표준 5단계 전수 검사 및 신뢰성 테스트 프로토콜이 기본 적용됩니다."
+        p.font.name = FONT_FAMILY
+        p.font.size = Pt(10.5)
+        p.font.color.rgb = COLOR_TEXT_MUTED
+
+    # =========================================================
+    # SLIDE 4: Executive Pitch & 3대 비즈니스 가치 드라이버
+    # =========================================================
+    slide4 = prs.slides.add_slide(prs.slide_layouts[6])
+    set_slide_bg(slide4, COLOR_BG_PAGE)
+    add_slide_header(slide4, L["s3_title"], L["s3_tag"])
+
+    tf_pitch = add_card_text_frame(
+        slide4, Inches(0.8), Inches(1.5), Inches(11.733), Inches(2.3),
+        bg_color=COLOR_PRIMARY_LIGHT, border_color=RGBColor(147, 197, 253),
+        pad_h=0.35, pad_v=0.22, corner_radius_in=0.18
+    )
+    p = tf_pitch.paragraphs[0]
+    p.text = L["exec_pitch_title"]
+    p.font.name = FONT_FAMILY
+    p.font.size = Pt(10)
+    p.font.bold = True
+    p.font.color.rgb = COLOR_PRIMARY
+    p.space_after = Pt(6)
+
+    p = tf_pitch.add_paragraph()
     p.text = f'"{pitch}"'
-    p.font.size = Pt(20)
-    p.font.italic = True
-    p.alignment = PP_ALIGN.CENTER
+    p.font.name = FONT_FAMILY
+    p.font.size = Pt(13.5)
+    p.font.bold = True
+    p.font.color.rgb = COLOR_NAVY_DARK
 
-    # Optional Slide 5: Gemini AI Root Cause Analysis (If generated)
+    pillar_w = Inches(3.64)
+    pillar_gap = Inches(0.4)
+    pillar_h = Inches(2.9)
+    top_pillar = Inches(4.0)
+
+    pillars = [
+        {"title": L["p1_title"], "sub": L["p1_sub"]},
+        {"title": L["p2_title"], "sub": L["p2_sub"]},
+        {"title": L["p3_title"], "sub": L["p3_sub"]},
+    ]
+
+    for i, pil in enumerate(pillars):
+        x = Inches(0.8) + i * (pillar_w + pillar_gap)
+        tf_pil = add_card_text_frame(
+            slide4, x, top_pillar, pillar_w, pillar_h,
+            pad_h=0.25, pad_v=0.2, corner_radius_in=0.18
+        )
+        p = tf_pil.paragraphs[0]
+        p.text = pil["title"]
+        p.font.name = FONT_FAMILY
+        p.font.size = Pt(12)
+        p.font.bold = True
+        p.font.color.rgb = COLOR_NAVY_DARK
+        p.space_after = Pt(8)
+
+        for line in pil["sub"].splitlines():
+            p_line = tf_pil.add_paragraph()
+            p_line.text = line.strip()
+            p_line.font.name = FONT_FAMILY
+            p_line.font.size = Pt(9.5)
+            p_line.font.color.rgb = RGBColor(71, 85, 105)
+            p_line.space_after = Pt(3)
+
+    # =========================================================
+    # SLIDE 5: [v4.0] Executive Financial Impact & ROI Simulation
+    # =========================================================
+    if roi_data:
+        slide_roi = prs.slides.add_slide(prs.slide_layouts[6])
+        set_slide_bg(slide_roi, COLOR_BG_PAGE)
+        add_slide_header(slide_roi, L["s4_title"], L["s4_tag"])
+
+        kpi_configs = [
+            {
+                "val": f"${roi_data['saved_total_cost']:,.0f}",
+                "lbl": L["roi_card1_title"],
+                "color": COLOR_ACCENT_GREEN,
+            },
+            {
+                "val": f"{roi_data['saved_cs_calls']:,} 건",
+                "lbl": L["roi_card2_title"],
+                "color": COLOR_PRIMARY,
+            },
+            {
+                "val": f"{roi_data['saved_returns']:,} 대",
+                "lbl": L["roi_card3_title"],
+                "color": COLOR_ACCENT_ORANGE,
+            },
+        ]
+        card_w_roi = Inches(3.64)
+        gap_roi = Inches(0.4)
+
+        for i, kpi in enumerate(kpi_configs):
+            x = Inches(0.8) + i * (card_w_roi + gap_roi)
+            tf_k = add_card_text_frame(slide_roi, x, Inches(1.5), card_w_roi, Inches(1.3), pad_h=0.2, pad_v=0.15)
+            p_v = tf_k.paragraphs[0]
+            p_v.text = kpi["val"]
+            p_v.font.name = FONT_FAMILY
+            p_v.font.size = Pt(26)
+            p_v.font.bold = True
+            p_v.font.color.rgb = kpi["color"]
+            p_v.alignment = PP_ALIGN.CENTER
+            p_v.space_after = Pt(3)
+
+            p_l = tf_k.add_paragraph()
+            p_l.text = kpi["lbl"]
+            p_l.font.name = FONT_FAMILY
+            p_l.font.size = Pt(10.5)
+            p_l.font.color.rgb = COLOR_TEXT_MUTED
+            p_l.alignment = PP_ALIGN.CENTER
+
+        tf_detail_l = add_card_text_frame(slide_roi, Inches(0.8), Inches(3.05), Inches(5.66), Inches(3.85), pad_h=0.3, pad_v=0.25)
+        p = tf_detail_l.paragraphs[0]
+        p.text = "📊 고객사 시뮬레이션 산출 기준 (Baseline)"
+        p.font.name = FONT_FAMILY
+        p.font.size = Pt(13)
+        p.font.bold = True
+        p.font.color.rgb = COLOR_NAVY_DARK
+        p.space_after = Pt(10)
+
+        params_text = [
+            f"• 적용 활성 가입자/단말 수량: {roi_data['sub_count']:,} 대",
+            f"• 고객사 연간 RCU CS 상담 인입률: {roi_data['cs_rate']:.1f}%",
+            f"• 고객센터 1건당 상담 처리 원가: ${roi_data['cs_cost']:.2f}",
+            f"• 연간 실물 교체/불량 반품률: {roi_data['return_rate']:.1f}%",
+            f"• 단말 조달 원가 및 왕복 물류비: ${roi_data['return_cost']:.2f}",
+            f"• 당사 차세대 H/W & F/W 결함 개선 목표: {roi_data['reduction_rate']}% 억제",
+        ]
+        for pt in params_text:
+            p = tf_detail_l.add_paragraph()
+            p.text = pt
+            p.font.name = FONT_FAMILY
+            p.font.size = Pt(10)
+            p.font.color.rgb = COLOR_TEXT_MAIN
+            p.space_after = Pt(6)
+
+        tf_detail_r = add_card_text_frame(slide_roi, Inches(6.866), Inches(3.05), Inches(5.66), Inches(3.85), pad_h=0.3, pad_v=0.25)
+        p = tf_detail_r.paragraphs[0]
+        p.text = "🎯 연간 세부 비용 절감 분석 (Annual Savings)"
+        p.font.name = FONT_FAMILY
+        p.font.size = Pt(13)
+        p.font.bold = True
+        p.font.color.rgb = COLOR_PRIMARY
+        p.space_after = Pt(10)
+
+        calc_krw_eok = (roi_data['saved_total_cost'] * 1350.0) / 100000000.0
+        calc_text = [
+            f"1. CS 상담 콜센터 비용 절감: ${roi_data['saved_cs_cost']:,.0f} / 년",
+            f"   (기존 {int(roi_data['sub_count'] * roi_data['cs_rate'] / 100):,}건 중 {roi_data['saved_cs_calls']:,}건의 고객 불만 원천 예방)",
+            "",
+            f"2. 실물 반품/교체 물류비 절감: ${roi_data['saved_return_cost']:,.0f} / 년",
+            f"   (기존 {int(roi_data['sub_count'] * roi_data['return_rate'] / 100):,}대 중 {roi_data['saved_returns']:,}대의 단말 교체 비용 절감)",
+            "",
+            f"✨ 당사 솔루션 도입 시 연간 {roi_data['reduction_rate']}%의 고질적 결함을 제거하여,",
+            f"   연간 총 ${roi_data['saved_total_cost']:,.0f} (한화 약 {calc_krw_eok:,.1f}억 원)의 OPEX 절감 효과 달성.",
+        ]
+        for ct in calc_text:
+            p = tf_detail_r.add_paragraph()
+            p.text = ct
+            p.font.name = FONT_FAMILY
+            p.font.size = Pt(9.8) if not ct.startswith("✨") else Pt(10.5)
+            p.font.bold = True if ct.startswith(("1.", "2.", "✨")) else False
+            p.font.color.rgb = COLOR_ACCENT_GREEN if ct.startswith("✨") else COLOR_TEXT_MAIN
+            p.space_after = Pt(4)
+
+    # =========================================================
+    # SLIDE 6: Gemini AI Root Cause (3열 카드 그리드)
+    # =========================================================
     if ai_analysis and not ai_analysis.startswith("⚠️"):
-        slide5 = prs.slides.add_slide(prs.slide_layouts[1])
-        slide5.shapes.title.text = L["ai_slide_title"]
-        tf5 = slide5.placeholders[1].text_frame
-        tf5.clear()
-        tf5.word_wrap = True
+        slide_ai = prs.slides.add_slide(prs.slide_layouts[6])
+        set_slide_bg(slide_ai, COLOR_BG_PAGE)
+        add_slide_header(slide_ai, L["s5_title"], L["s5_tag"])
 
-        for line in ai_analysis.splitlines():
-            line_str = line.strip()
-            if not line_str:
-                continue
-            p = tf5.add_paragraph()
-            if line_str.startswith("### "):
-                p.text = line_str.replace("### ", "").strip()
-                p.font.size = Pt(16)
-                p.font.bold = True
-                p.font.color.rgb = RGBColor(31, 119, 180)
-            elif line_str.startswith(("- ", "* ")):
-                p.text = "  • " + line_str[2:].strip()
-                p.font.size = Pt(12)
-                p.font.color.rgb = RGBColor(60, 60, 60)
-            else:
-                p.text = line_str
-                p.font.size = Pt(12)
+        s1_items, s2_items, s3_items = parse_gemini_sections(ai_analysis)
+
+        ai_cols = [
+            {"title": L["col1_title"], "color": COLOR_PRIMARY, "items": s1_items},
+            {"title": L["col2_title"], "color": COLOR_ACCENT_RED, "items": s2_items},
+            {"title": L["col3_title"], "color": COLOR_ACCENT_GREEN, "items": s3_items},
+        ]
+
+        col_w = Inches(3.64)
+        col_gap = Inches(0.4)
+        col_h = Inches(5.4)
+
+        for i, acol in enumerate(ai_cols):
+            x = Inches(0.8) + i * (col_w + col_gap)
+            tf_col = add_card_text_frame(
+                slide_ai, x, Inches(1.5), col_w, col_h,
+                pad_h=0.25, pad_v=0.2, corner_radius_in=0.18
+            )
+            p = tf_col.paragraphs[0]
+            p.text = acol["title"]
+            p.font.name = FONT_FAMILY
+            p.font.size = Pt(12)
+            p.font.bold = True
+            p.font.color.rgb = acol["color"]
+            p.space_after = Pt(10)
+
+            items_to_show = acol["items"][:4] if acol["items"] else ["-"]
+            for item in items_to_show:
+                item_str = item.strip()
+                if len(item_str) > 130:
+                    item_str = item_str[:127] + "..."
+                p = tf_col.add_paragraph()
+                p.text = f"• {item_str}"
+                p.font.name = FONT_FAMILY
+                p.font.size = Pt(9.5)
+                p.font.color.rgb = COLOR_TEXT_MAIN
+                p.space_after = Pt(6)
 
     ppt_stream = io.BytesIO()
     prs.save(ppt_stream)
@@ -793,14 +1302,24 @@ def create_pptx_deck(
 # -------------------------------------------------------------
 st.sidebar.header(txt("sidebar_filter"))
 
-if st.sidebar.button(txt("sync_btn")):
-    st.cache_data.clear()
-    st.rerun()
+# [실시간 수집 연동]
+if st.sidebar.button(txt("sync_btn"), key="btn_sync_collector"):
+    with st.spinner("🔄 글로벌 실시간 VoC 웹/스토어 수집 및 동기화 진행 중입니다... (약 15~30초 소요)"):
+        try:
+            import collector2
+            importlib.reload(collector2)
+            collector2.collect_advanced_voc()
+            st.cache_data.clear()
+            st.toast("✅ 최신 VoC 수집 및 데이터베이스 동기화가 완료되었습니다!", icon="🚀")
+            time.sleep(1)
+            st.rerun()
+        except Exception as e:
+            st.sidebar.error(f"⚠️ 수집 동기화 실패: {e}")
 
 st.sidebar.markdown("---")
 st.sidebar.markdown(f"##### {txt('preset_title')}")
 
-all_unique_brands = sorted(list(df["Brand"].unique()))
+all_unique_brands = sorted(list(df_all["Brand"].unique()))
 if "selected_brand_list" not in st.session_state:
     st.session_state["selected_brand_list"] = all_unique_brands
 
@@ -839,7 +1358,7 @@ with col_btn2:
 
 st.sidebar.markdown("---")
 
-device_types = sorted(list(df["Device_Type"].dropna().unique()))
+device_types = sorted(list(df_all["Device_Type"].dropna().unique()))
 selected_types = st.sidebar.multiselect(
     txt("filter_dev"),
     options=device_types,
@@ -847,7 +1366,7 @@ selected_types = st.sidebar.multiselect(
     format_func=get_dev_name,
 )
 
-brand_subset = df[df["Device_Type"].isin(selected_types)]["Brand"].unique()
+brand_subset = df_all[df_all["Device_Type"].isin(selected_types)]["Brand"].unique()
 available_brands = sorted(list(brand_subset))
 valid_defaults = [
     b for b in st.session_state["selected_brand_list"] if b in available_brands
@@ -860,7 +1379,7 @@ selected_brands = st.sidebar.multiselect(
 )
 
 with st.sidebar.expander(txt("filter_hw"), expanded=False):
-    all_powers = sorted(list(df["Power_Type"].unique()))
+    all_powers = sorted(list(df_all["Power_Type"].unique()))
     sel_powers = st.multiselect(
         txt("filter_power"),
         all_powers,
@@ -868,7 +1387,7 @@ with st.sidebar.expander(txt("filter_hw"), expanded=False):
         format_func=get_power_name,
     )
 
-    all_uis = sorted(list(df["UI_Type"].unique()))
+    all_uis = sorted(list(df_all["UI_Type"].unique()))
     sel_uis = st.multiselect(
         txt("filter_ui"),
         all_uis,
@@ -878,15 +1397,19 @@ with st.sidebar.expander(txt("filter_hw"), expanded=False):
 
 selected_regions = st.sidebar.multiselect(
     txt("filter_region"),
-    options=sorted(df["Region"].unique()),
-    default=sorted(df["Region"].unique()),
+    options=sorted(df_all["Region"].unique()),
+    default=sorted(df_all["Region"].unique()),
     format_func=get_region_name,
 )
 
+# 카테고리 필터 목록에서도 '기타/일반'을 기본값에서 제외하여 순수 결함만 분석
+available_cats_all = sorted(list(df_all["Category"].unique()))
+pure_actionable_cats = [c for c in available_cats_all if c != "기타/일반"]
+
 selected_cats = st.sidebar.multiselect(
     txt("filter_cat"),
-    options=sorted(df["Category"].unique()),
-    default=sorted(df["Category"].unique()),
+    options=available_cats_all,
+    default=pure_actionable_cats if pure_actionable_cats else available_cats_all,
     format_func=get_cat_name,
 )
 
@@ -895,7 +1418,6 @@ search_keyword = st.sidebar.text_input(
     placeholder=txt("kw_placeholder"),
 )
 
-# 사이드바 하단 Gemini API 키 입력기
 with st.sidebar.expander("🤖 Gemini AI API Settings", expanded=False):
     saved_key = get_secret_api_key()
     user_api_key = st.text_input(
@@ -909,26 +1431,32 @@ with st.sidebar.expander("🤖 Gemini AI API Settings", expanded=False):
     if user_api_key:
         st.session_state["gemini_api_key"] = user_api_key.strip()
 
-filtered_df = df[
-    (df["Device_Type"].isin(selected_types))
-    & (df["Brand"].isin(selected_brands))
-    & (df["Power_Type"].isin(sel_powers))
-    & (df["UI_Type"].isin(sel_uis))
-    & (df["Region"].isin(selected_regions))
-    & (df["Category"].isin(selected_cats))
+# 1차 필터링
+filtered_df_raw = df_all[
+    (df_all["Device_Type"].isin(selected_types))
+    & (df_all["Brand"].isin(selected_brands))
+    & (df_all["Power_Type"].isin(sel_powers))
+    & (df_all["UI_Type"].isin(sel_uis))
+    & (df_all["Region"].isin(selected_regions))
+    & (df_all["Category"].isin(selected_cats))
 ]
 
 if search_keyword.strip():
-    filtered_df = filtered_df[
-        filtered_df["Review"]
+    filtered_df_raw = filtered_df_raw[
+        filtered_df_raw["Review"]
         .astype(str)
         .str.contains(search_keyword.strip(), case=False, na=False)
     ]
 
+# [핵심 정책] 분석 차트 및 제안서용: '기타/일반'을 완전 배제한 순수 엔지니어링 분석 데이터셋 생성
+filtered_df = filtered_df_raw[filtered_df_raw["Category"] != "기타/일반"].copy()
+if filtered_df.empty:
+    filtered_df = filtered_df_raw.copy()
+
 # -------------------------------------------------------------
 # 4. 상단 헤더 & 알림 배너
 # -------------------------------------------------------------
-st.title(txt("main_title"))
+st.title("📺 글로벌 RCU 고객 VOC 인텔리전스 대시보드 v4.0")
 st.caption(txt("main_caption"))
 
 if not filtered_df.empty:
@@ -987,8 +1515,14 @@ with tab1:
     top_cat_mode = filtered_df["Category"].mode()
     top_cat = get_cat_name(top_cat_mode.iloc[0]) if not top_cat_mode.empty else "-"
 
+    if not filtered_df.empty:
+        min_d = filtered_df["Parsed_Date"].min().strftime("%Y-%m-%d")
+        max_d = filtered_df["Parsed_Date"].max().strftime("%Y-%m-%d")
+        max_yw = filtered_df["Parsed_Date"].max().strftime("%Y-W%W")
+        st.caption(f"📅 **엔지니어링 결함 분석 기간**: {min_d} ~ {max_d} (최종 반영 주차: **{max_yw}**) · *불명확한 '기타/일반' 제외*")
+
     m1, m2, m3, m4 = st.columns(4)
-    m1.metric(txt("m_total"), f"{total_cnt:,}")
+    m1.metric("해결 대상 결함 건수", f"{total_cnt:,}")
     m2.metric(
         txt("m_neg_rate"),
         f"{neg_ratio:.1f}%",
@@ -1002,26 +1536,45 @@ with tab1:
     col_t1, col_t2 = st.columns(2)
     selected_slice = None
 
+    def resolve_cat_example(cat):
+        ex = tr.get_cat_example(cat, curr_lang)
+        if ex and str(ex).strip() not in ["-", "", "None"]:
+            return str(ex).strip()
+        cat_revs = filtered_df[
+            (filtered_df["Category"] == cat) & (filtered_df["Sentiment"] == "Negative")
+        ]["Review"].dropna()
+        if cat_revs.empty:
+            cat_revs = filtered_df[filtered_df["Category"] == cat]["Review"].dropna()
+        if not cat_revs.empty:
+            sample_text = str(cat_revs.iloc[0]).replace("\n", " ").strip()
+            sample_text = re.sub(r"^\[.*?\]\s*", "", sample_text)
+            return sample_text[:65] + "..." if len(sample_text) > 65 else sample_text
+        return "현장 접수 사례 데이터 분석 중"
+
     with col_t1:
-        st.subheader(txt("chart_cat_dist"))
+        st.subheader("📊 정밀 엔지니어링 결함 분포 (Actionable VoC)")
         if not filtered_df.empty:
             cat_counts = filtered_df["Category"].value_counts().reset_index()
             cat_counts.columns = ["Category", "Count"]
             cat_counts["Category_Label"] = cat_counts["Category"].apply(get_cat_name)
-
-            # 호버 툴팁용 정의 및 주요 사례 주입 (이미지와 동일한 📌 정의 & 💬 주요 사례 서식)
             cat_counts["Description"] = cat_counts["Category"].map(lambda c: tr.get_cat_desc(c, curr_lang))
-            cat_counts["Examples"] = cat_counts["Category"].map(lambda c: tr.get_cat_example(c, curr_lang))
+            cat_counts["Examples"] = cat_counts["Category"].apply(resolve_cat_example)
 
-            customdata = cat_counts[["Description", "Examples"]].values
+            hover_text_list = []
+            for _, r in cat_counts.iterrows():
+                c_lbl = r["Category_Label"]
+                c_cnt = r["Count"]
+                c_pct = (c_cnt / total_cnt * 100) if total_cnt > 0 else 0
+                c_desc = r["Description"]
+                c_ex = r["Examples"]
 
-            hovertemplate = (
-                "<b>%{label}</b><br>"
-                + f"{txt('share_label')}: <b>%{{percent}}</b> (%{{value:,}}{txt('count_unit')})<br><br>"
-                + f"📌 <b>{txt('lbl_definition')}:</b> %{{customdata[0]}}<br>"
-                + f"💬 <b>{txt('lbl_key_examples')}:</b> %{{customdata[1]}}"
-                + "<extra></extra>"
-            )
+                ht = (
+                    f"<b>{c_lbl}</b><br>"
+                    f"{txt('share_label')}: <b>{c_pct:.1f}%</b> ({c_cnt:,}{txt('count_unit')})<br><br>"
+                    f"📌 <b>{txt('lbl_definition')}:</b> {c_desc}<br>"
+                    f"💬 <b>{txt('lbl_key_examples')}:</b> {c_ex}"
+                )
+                hover_text_list.append(ht)
 
             fig1 = go.Figure(
                 data=[
@@ -1030,8 +1583,9 @@ with tab1:
                         values=cat_counts["Count"],
                         hole=0.4,
                         textinfo="percent",
-                        customdata=customdata,
-                        hovertemplate=hovertemplate,
+                        hovertext=hover_text_list,
+                        hovertemplate="%{hovertext}<extra></extra>",
+                        customdata=cat_counts["Category"],
                         marker=dict(colors=px.colors.qualitative.Set3),
                     )
                 ]
@@ -1041,7 +1595,6 @@ with tab1:
                 legend=dict(orientation="v", x=1.05, y=0.5),
             )
 
-            # 차트 클릭 지원 (Streamlit 1.35 이상 동적 감지)
             try:
                 import inspect
                 if "on_select" in inspect.signature(st.plotly_chart).parameters:
@@ -1094,7 +1647,7 @@ with tab1:
             st.plotly_chart(fig2, use_container_width=True)
 
     # -------------------------------------------------------------
-    # 4번 연계: 인라인 심층 드릴다운 & 현장 VoC 원문 5선 (Drill-Down Inspector)
+    # 인라인 심층 드릴다운 & 현장 VoC 원문 5선 (Drill-Down Inspector)
     # -------------------------------------------------------------
     st.write("")
     st.markdown("---")
@@ -1104,9 +1657,12 @@ with tab1:
     if not filtered_df.empty:
         available_inspect_cats = sorted(list(filtered_df["Category"].unique()))
 
-        # 차트 클릭 선택 또는 직전 선택 상태 동기화
+        # 차트 클릭 선택 시 selectbox 상태를 강제 동기화하여 지연 현상 방지
         if selected_slice and selected_slice in available_inspect_cats:
+            st.session_state["inline_inspect_cat_select"] = selected_slice
             default_inspect_cat = selected_slice
+        elif "inline_inspect_cat_select" in st.session_state and st.session_state["inline_inspect_cat_select"] in available_inspect_cats:
+            default_inspect_cat = st.session_state["inline_inspect_cat_select"]
         elif "chosen_drilldown_cat" in st.session_state and st.session_state["chosen_drilldown_cat"] in available_inspect_cats:
             default_inspect_cat = st.session_state["chosen_drilldown_cat"]
         else:
@@ -1129,7 +1685,7 @@ with tab1:
         with col_dd1:
             st.markdown(f"##### {txt('cat_summary_card')}")
             cat_desc = tr.get_cat_desc(inspect_cat, curr_lang)
-            cat_ex = tr.get_cat_example(inspect_cat, curr_lang)
+            cat_ex = resolve_cat_example(inspect_cat)
             cat_sol = get_action_sol(inspect_cat)
             cat_count_val = len(filtered_df[filtered_df["Category"] == inspect_cat])
             cat_ratio_val = (cat_count_val / total_cnt * 100) if total_cnt > 0 else 0
@@ -1170,18 +1726,49 @@ with tab1:
             else:
                 st.info(txt("no_cat_reviews"))
 
+    # -------------------------------------------------------------
+    # 주차별 트렌드 라인 차트 (동적 기간 선택기)
+    # -------------------------------------------------------------
     st.write("")
     st.markdown("---")
-    st.subheader(txt("chart_trend"))
+    
+    col_tr_h, col_tr_sel = st.columns([1.5, 1])
+    with col_tr_h:
+        st.subheader("📈 주간별 정밀 기술 결함 발생 추이")
+    with col_tr_sel:
+        trend_period_opt = st.radio(
+            "조회 기간",
+            options=["최근 12주", "최근 24주", "최근 1년", "전체 기간"],
+            horizontal=True,
+            index=1,
+            label_visibility="collapsed",
+            key="trend_period_selector_radio"
+        )
+
     if not filtered_df.empty:
         trend_df = filtered_df.copy()
+        max_dt = trend_df["Parsed_Date"].max()
+
+        if trend_period_opt == "최근 12주":
+            trend_df = trend_df[trend_df["Parsed_Date"] >= (max_dt - pd.Timedelta(weeks=12))].copy()
+        elif trend_period_opt == "최근 24주":
+            trend_df = trend_df[trend_df["Parsed_Date"] >= (max_dt - pd.Timedelta(weeks=24))].copy()
+        elif trend_period_opt == "최근 1년":
+            trend_df = trend_df[trend_df["Parsed_Date"] >= (max_dt - pd.Timedelta(days=365))].copy()
+
+        if trend_df.empty:
+            trend_df = filtered_df.copy()
+
         trend_df["YearWeek"] = trend_df["Parsed_Date"].dt.strftime("%Y-W%W")
         trend_df["Category_Label"] = trend_df["Category"].apply(get_cat_name)
+
         weekly_trend = (
             trend_df.groupby(["YearWeek", "Category_Label"])
             .size()
             .reset_index(name="건수")
         )
+        weekly_trend = weekly_trend.sort_values(by=["YearWeek", "Category_Label"], ascending=[True, True])
+
         fig_trend = px.line(
             weekly_trend,
             x="YearWeek",
@@ -1195,17 +1782,24 @@ with tab1:
                 "Category_Label": txt("filter_cat"),
             },
         )
-        fig_trend.update_layout(margin=dict(t=20, b=20, l=10, r=10))
+        
+        fig_trend.update_layout(
+            xaxis={
+                "type": "category",
+                "categoryorder": "category ascending"
+            },
+            margin=dict(t=20, b=20, l=10, r=10)
+        )
         st.plotly_chart(fig_trend, use_container_width=True)
 
 # =============================================================
-# TAB 2: 브랜드 1:1 벤치마크
+# TAB 2: 브랜드 1:1 벤치마크 ('기타/일반' 배제)
 # =============================================================
 with tab2:
     st.subheader(txt("t2_title"))
     st.caption(txt("t2_caption"))
 
-    all_b = sorted(list(df["Brand"].dropna().unique()))
+    all_b = sorted(list(filtered_df["Brand"].dropna().unique()))
     if len(all_b) >= 2:
         c_b1, c_b2 = st.columns(2)
         with c_b1:
@@ -1213,6 +1807,7 @@ with tab2:
                 txt("brand_a_label"),
                 all_b,
                 index=all_b.index("Samsung") if "Samsung" in all_b else 0,
+                key="brand_a_select",
             )
         with c_b2:
             cand_b = [b for b in all_b if b != brand_a]
@@ -1224,9 +1819,10 @@ with tab2:
                     if "MultiChoice (DStv)" in cand_b
                     else 0
                 ),
+                key="brand_b_select",
             )
 
-        df_a, df_b = df[df["Brand"] == brand_a], df[df["Brand"] == brand_b]
+        df_a, df_b = filtered_df[filtered_df["Brand"] == brand_a], filtered_df[filtered_df["Brand"] == brand_b]
         a_cnt, b_cnt = len(df_a), len(df_b)
         a_neg_rate = (
             (len(df_a[df_a["Sentiment"] == "Negative"]) / a_cnt * 100)
@@ -1240,13 +1836,13 @@ with tab2:
         )
 
         k1, k2, km, k3, k4 = st.columns([2, 2, 1, 2, 2])
-        k1.metric(f"[{brand_a}] {txt('m_total')}", f"{a_cnt:,}")
+        k1.metric(f"[{brand_a}] 결함 분석 건수", f"{a_cnt:,}")
         k2.metric(f"[{brand_a}] {txt('m_neg_rate')}", f"{a_neg_rate:.1f}%")
         km.markdown(
             "<h3 style='text-align: center; color: gray;'>VS</h3>",
             unsafe_allow_html=True,
         )
-        k3.metric(f"[{brand_b}] {txt('m_total')}", f"{b_cnt:,}")
+        k3.metric(f"[{brand_b}] 결함 분석 건수", f"{b_cnt:,}")
         k4.metric(
             f"[{brand_b}] {txt('m_neg_rate')}",
             f"{b_neg_rate:.1f}%",
@@ -1254,7 +1850,7 @@ with tab2:
             delta_color="inverse",
         )
 
-        df_ab = df[df["Brand"].isin([brand_a, brand_b])].copy()
+        df_ab = filtered_df[filtered_df["Brand"].isin([brand_a, brand_b])].copy()
         if not df_ab.empty:
             df_ab["Category_Label"] = df_ab["Category"].apply(get_cat_name)
             cat_ab = (
@@ -1283,21 +1879,17 @@ with tab2:
         st.markdown(f"#### {txt('rd_action_title')}")
         col_act_a, col_act_b = st.columns(2)
         with col_act_a:
-            top_issue_a = df_a[df_a["Sentiment"] == "Negative"][
-                "Category"
-            ].mode()
+            top_issue_a = df_a[df_a["Sentiment"] == "Negative"]["Category"].mode()
             act_cat_a = (
-                top_issue_a.iloc[0] if not top_issue_a.empty else "기타/일반"
+                top_issue_a.iloc[0] if not top_issue_a.empty else "배터리/전원"
             )
             rec_a = get_action_sol(act_cat_a)
             st.success(f"**[{brand_a}] {txt('core_weakness')}: {get_cat_name(act_cat_a)}**\n\n{txt('hw_fw_proposal')}\n- {rec_a}")
 
         with col_act_b:
-            top_issue_b = df_b[df_b["Sentiment"] == "Negative"][
-                "Category"
-            ].mode()
+            top_issue_b = df_b[df_b["Sentiment"] == "Negative"]["Category"].mode()
             act_cat_b = (
-                top_issue_b.iloc[0] if not top_issue_b.empty else "기타/일반"
+                top_issue_b.iloc[0] if not top_issue_b.empty else "배터리/전원"
             )
             rec_b = get_action_sol(act_cat_b)
             st.warning(f"**[{brand_b}] {txt('core_weakness')}: {get_cat_name(act_cat_b)}**\n\n{txt('hw_fw_proposal')}\n- {rec_b}")
@@ -1316,13 +1908,17 @@ with tab3:
         "was", "were", "remote", "control", "device", "tv", "app", "work",
         "works", "one", "all", "you", "can", "cant", "just", "very",
         "also", "from", "have", "리모컨", "작동", "사용", "제품", "진짜",
-        "너무", "그냥", "다시",
+        "너무", "그냥", "다시", "ha", "va", "cua", "cho", "duoc",
+        "thi", "khong", "cua", "la", "tai", "được", "không", "có",
+        "การ", "และ", "ของ", "ที่", "ไม่", "ได้", "ใช้", "กับ"
     }
     single_words, bigram_phrases = [], []
+    
+    word_pattern = re.compile(r"[^\W\d_]{2,}", re.UNICODE)
+    
     for rev in neg_reviews:
         tokens = [
-            w
-            for w in re.findall(r"[a-zA-Z가-힣]{2,}", rev.lower())
+            w for w in word_pattern.findall(rev.lower())
             if w not in stopwords and len(w) > 2
         ]
         single_words.extend(tokens)
@@ -1372,7 +1968,7 @@ with tab3:
             st.plotly_chart(fig_bigrams, use_container_width=True)
 
 # =============================================================
-# TAB 4: 원문 DB & 다운로드 (다국어 테이블 및 컬럼 번역 적용)
+# TAB 4: 원문 DB & 다운로드 (전체 원문 보존)
 # =============================================================
 with tab4:
     st.subheader(txt("t4_title"))
@@ -1382,10 +1978,10 @@ with tab4:
             "Device_Type", "Power_Type", "UI_Type", "Region", "Brand",
             "Category", "Sentiment", "Source", "Review", "Collected_Date",
         ]
-        if c in filtered_df.columns
+        if c in filtered_df_raw.columns
     ]
 
-    table_df = filtered_df[display_cols].copy()
+    table_df = filtered_df_raw[display_cols].copy()
     if "Device_Type" in table_df.columns:
         table_df["Device_Type"] = table_df["Device_Type"].apply(get_dev_name)
     if "Power_Type" in table_df.columns:
@@ -1413,13 +2009,13 @@ with tab4:
     )
 
 # =============================================================
-# TAB 5: B2B 수주 & 임원 보고용 Pitch (Gemini AI 심층 진단 탑재)
+# TAB 5: B2B 수주 Pitch & ROI 시뮬레이터 ('기타/일반' 원천 배제)
 # =============================================================
 with tab5:
     st.subheader(txt("t5_title"))
     st.caption(txt("t5_caption"))
 
-    all_pitch_brands = sorted(list(df["Brand"].dropna().unique()))
+    all_pitch_brands = sorted(list(filtered_df["Brand"].dropna().unique()))
     target_client = st.selectbox(
         txt("target_client_label"),
         all_pitch_brands,
@@ -1428,16 +2024,21 @@ with tab5:
             if "KT (지니TV)" in all_pitch_brands
             else 0
         ),
+        key="pitch_target_client_select",
     )
     st.divider()
 
-    client_df = df[df["Brand"] == target_client]
+    client_df = filtered_df[filtered_df["Brand"] == target_client]
     client_neg = client_df[client_df["Sentiment"] == "Negative"]
 
     if client_neg.empty:
         st.info(txt("no_neg_voc", client=target_client))
     else:
-        client_cat_counts = client_neg["Category"].value_counts()
+        # '기타/일반'을 배제한 순수 정밀 결함 카운트
+        client_cat_counts = client_neg[client_neg["Category"] != "기타/일반"]["Category"].value_counts()
+        if client_cat_counts.empty:
+            client_cat_counts = client_neg["Category"].value_counts()
+
         top_issues = client_cat_counts.head(2)
         primary_issue_raw = top_issues.index[0]
         secondary_issue_raw = (
@@ -1540,6 +2141,116 @@ with tab5:
             unsafe_allow_html=True,
         )
 
+        # ---------------------------------------------------------
+        # [v4.0] B2B 수주 핵심: ROI & OPEX 절감 시뮬레이터 (최소값 0 반영)
+        # ---------------------------------------------------------
+        st.write("")
+        st.markdown("---")
+        st.markdown(f"#### 💰 [B2B 수주 핵심] {target_client} 가입자 기반 ROI & OPEX 비용 절감 시뮬레이터")
+        st.caption("고객사의 활성 셋톱박스/단말 보급 규모에 맞춘 연간 CS 콜 인입 비용 및 불량 반품 물류비 절감액을 실시간 산출합니다.")
+
+        with st.expander("⚙️ 시뮬레이션 파라미터 세부 설정", expanded=True):
+            col_sim1, col_sim2, col_sim3 = st.columns(3)
+            with col_sim1:
+                sub_count = st.number_input(
+                    "고객사 활성 가입자/단말 수",
+                    min_value=0,
+                    max_value=50000000,
+                    value=1000000,
+                    step=10000,
+                    key="sim_sub_count"
+                )
+                reduction_rate = st.slider(
+                    "당사 차세대 RCU 결함 억제율 (%)",
+                    min_value=0,
+                    max_value=100,
+                    value=65,
+                    step=5,
+                    key="sim_reduction_rate",
+                    help="당사 차세대 H/W & F/W 솔루션 도입 시 기대되는 상위 결함(방전, 페어링 끊김 등) 억제율"
+                )
+
+            with col_sim2:
+                cs_rate = st.number_input(
+                    "연간 RCU 관련 CS 인입률 (%)",
+                    min_value=0.0,
+                    max_value=100.0,
+                    value=4.5,
+                    step=0.1,
+                    key="sim_cs_rate"
+                )
+                cs_cost = st.number_input(
+                    "CS 상담 1건당 처리 원가 ($)",
+                    min_value=0.0,
+                    max_value=100.0,
+                    value=4.5,
+                    step=0.5,
+                    key="sim_cs_cost"
+                )
+
+            with col_sim3:
+                return_rate = st.number_input(
+                    "연간 불량 교체/반품률 (%)",
+                    min_value=0.0,
+                    max_value=100.0,
+                    value=1.2,
+                    step=0.1,
+                    key="sim_return_rate"
+                )
+                return_cost = st.number_input(
+                    "단말 원가 + 왕복 물류비 ($)",
+                    min_value=0.0,
+                    max_value=200.0,
+                    value=8.0,
+                    step=0.5,
+                    key="sim_return_cost"
+                )
+
+        # 산출 로직
+        base_cs_calls = sub_count * (cs_rate / 100.0)
+        saved_cs_calls = int(base_cs_calls * (reduction_rate / 100.0))
+        saved_cs_cost = saved_cs_calls * cs_cost
+
+        base_returns = sub_count * (return_rate / 100.0)
+        saved_returns = int(base_returns * (reduction_rate / 100.0))
+        saved_return_cost = saved_returns * return_cost
+
+        saved_total_cost = saved_cs_cost + saved_return_cost
+
+        roi_data_dict = {
+            "sub_count": sub_count,
+            "cs_rate": cs_rate,
+            "cs_cost": cs_cost,
+            "return_rate": return_rate,
+            "return_cost": return_cost,
+            "reduction_rate": reduction_rate,
+            "saved_cs_calls": saved_cs_calls,
+            "saved_cs_cost": saved_cs_cost,
+            "saved_returns": saved_returns,
+            "saved_return_cost": saved_return_cost,
+            "saved_total_cost": saved_total_cost,
+        }
+
+        # 정밀 실수 연산 (소수점 절삭 버그 해결)
+        krw_amount_eok = (saved_total_cost * 1350.0) / 100000000.0
+
+        col_roi1, col_roi2, col_roi3 = st.columns(3)
+        col_roi1.metric(
+            "💰 연간 총 OPEX 절감 추정액",
+            f"${saved_total_cost:,.0f}",
+            delta=f"약 {krw_amount_eok:,.1f}억 원 / 년",
+        )
+        col_roi2.metric(
+            "📞 연간 CS 문의 인입 억제",
+            f"{saved_cs_calls:,} 건",
+            delta=f"-{reduction_rate}% 감축",
+        )
+        col_roi3.metric(
+            "📦 연간 불량 교체/반품 방지",
+            f"{saved_returns:,} 대",
+            delta=f"-{reduction_rate}% 반품 절감",
+        )
+
         st.write("")
         st.markdown("---")
 
@@ -1556,7 +2267,7 @@ with tab5:
 
         col_ai_btn, col_ai_info = st.columns([1, 2.5])
         with col_ai_btn:
-            trigger_ai = st.button(txt("ai_btn"), type="primary")
+            trigger_ai = st.button(txt("ai_btn"), type="primary", key="btn_trigger_gemini_ai")
 
         if trigger_ai:
             if not active_api_key:
@@ -1573,11 +2284,10 @@ with tab5:
                     )
                     st.session_state[ai_session_key] = ai_result
 
-        # AI 결과 출력 컨테이너
         current_ai_text = st.session_state.get(ai_session_key, None)
         if current_ai_text:
             st.markdown(
-                f"""
+                """
                 <div style="background-color: #f0f7ff; padding: 24px; border-radius: 12px; border: 1.5px solid #90caf9; margin-top: 15px; margin-bottom: 20px;">
                 """,
                 unsafe_allow_html=True
@@ -1596,11 +2306,13 @@ with tab5:
             sample_reviews,
             cat_counts=client_cat_counts,
             ai_analysis=current_ai_text,
+            roi_data=roi_data_dict,
             lang=curr_lang,
         )
         st.download_button(
-            label=txt("btn_pptx_down", client=target_client),
+            label=f"📊 [{target_client}] 임원 보고 및 B2B 수주 제안서 다운로드 (.pptx v4.0)",
             data=ppt_file,
-            file_name=f"B2B_Pitch_{target_client.replace('/', '_')}_{curr_lang}_{today_date}.pptx",
+            file_name=f"B2B_Pitch_{target_client.replace('/', '_')}_{curr_lang}_v4.0_{today_date}.pptx",
             mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            key="btn_download_pptx_report",
         )
