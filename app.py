@@ -130,7 +130,7 @@ def check_password():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown("<br><br>", unsafe_allow_html=True)
-        st.title("🔒 Global RCU VOC Intelligence v4.0")
+        st.title(txt("gate_title"))
         st.markdown(f"##### {txt('gate_sub')}")
         st.info(txt("gate_info"))
 
@@ -295,55 +295,42 @@ AFRICA_CHAMPIONS = sum(REGIONAL_TOP3["아프리카 (Africa)"].values(), [])
 def refine_category(text):
     t = str(text).lower()
 
-    # 1. 모션 / 터치패드 / 자이로 센서 감도
     if any(w in t for w in ["gyro", "pointer", "cursor", "air mouse", "magic remote", "drift", "calibration", "touchpad", "포인터", "커서", "마우스", "자이로", "영점", "터치패드", "민감", "쏠림"]):
         return "모션/터치 센서 감도"
 
-    # 2. 그립감 / 인체공학 설계 (폼팩터, 미끄러짐, 소파 분실)
     if any(w in t for w in ["grip", "slippery", "ergonomic", "couch", "cushion", "slip", "too small", "too thin", "holding", "comfort", "그립", "미끄러", "미끄럼", "작아서", "얇아서", "소파", "손목", "불편", "잡기", "빠짐"]):
         return "그립감/인체공학 설계"
 
-    # 3. 초기 등록 / 호환성 설정 (셋업 가이드, 브랜드 코드 매핑)
     if any(w in t for w in ["code", "program", "manual", "setup", "universal", "compatible", "compatibility", "stb", "등록", "호환", "호환성", "설명서", "코드", "설정", "세팅", "인식 안 됨"]):
         return "초기 등록/호환성 설정"
 
-    # 4. 페어링 / 무선 연결
     if any(w in t for w in ["pair", "connect", "bluetooth", "wifi", "offline", "drop", "disconnect", "sync", "unpair", "network", "link", "lost", "load shedding", "synchro", "verbindung", "페어링", "연결", "블루투스"]):
         return "페어링/연결 끊김"
 
-    # 5. 속도 / 지연 / 렉 / 먹통
     if any(w in t for w in ["lag", "slow", "freeze", "stuck", "delay", "unresponsive", "hang", "epg", "latency", "buffering", "지연", "렉", "먹통", "느려", "멈춤", "반응"]):
         return "속도/지연/먹통"
 
-    # 6. 볼륨 / TV 전원 / HDMI-CEC 연동
     if any(w in t for w in ["volume", "mute", "cec", "hdmi", "turn on", "turn off", "soundbar", "receiver", "tv", "power", "handshake", "lautstärke", "볼륨", "소리", "전원", "외부입력"]):
         return "볼륨/TV연동(CEC)"
 
-    # 7. 신호범위 / IR 적외선 센서
     if any(w in t for w in ["range", "line of sight", "distance", "angle", "ir ", "signal", "sensor", "aim", "reichweite", "수신", "거리", "각도", "정면", "적외선"]):
         return "신호범위/IR센서"
 
-    # 8. 물리 버튼 / 키감 / 채터링
     if any(w in t for w in ["button", "layout", "press", "key", "click", "backlight", "chattering", "stiff", "눌러", "버튼", "키", "클릭", "더블클릭", "채터링", "백라이트", "씹힘", "함몰"]):
         return "버튼/UI 제어 불량"
 
-    # 9. 배터리 / 충전 / 누액
     if any(w in t for w in ["battery", "charge", "drain", "solar", "recharge", "corrosion", "leak", "batterie", "akku", "pile", "배터리", "건전지", "충전", "방전", "광탈", "누액", "부식"]):
         return "배터리/전원"
 
-    # 10. 음성 인식 / 마이크
     if any(w in t for w in ["voice", "mic", "alexa", "bixby", "siri", "assistant", "voix", "stimme", "음성", "마이크", "인식", "기가지니", "클로바"]):
         return "음성 인식/마이크"
 
-    # 11. 내구성 / 하드웨어 파손
     if any(w in t for w in ["cheap", "plastic", "break", "broke", "drop", "fall", "durability", "scratch", "깨짐", "파손", "마감", "부러", "내구성", "스크래치"]):
         return "내구성/하드웨어 퀄리티"
 
-    # 12. 계정 / OTA 업데이트 / UI 광고
     if any(w in t for w in ["login", "sign in", "account", "update", "ad ", "ota", "brick", "업데이트", "계정", "광고"]):
         return "계정/업데이트/광고"
 
-    # 13. 전용 앱 핫키 / 편의 기능
     if any(w in t for w in ["app", "hotkey", "shortcut", "finder", "raccourci", "핫키", "바로가기", "찾기", "비프음"]):
         return "단순 앱/기능 불만"
 
@@ -740,115 +727,11 @@ def create_pptx_deck(
             "col2_title": "🔬 H/W & F/W Root Cause Diagnosis",
             "col3_title": "🎯 B2B Differentiation Strategy",
         },
-        "zh": {
-            "cover_tag": "GLOBAL RCU VOC INTELLIGENCE v4.0 | B2B STRATEGIC PROPOSAL",
-            "deck_title": f"基于客户 VoC 洞察的 {client_name} 遥控器产品方案建议书",
-            "confidential": "机密 (CONFIDENTIAL) - 仅限商务竞标评估",
-            "date": "编制日期", "target": "目标品牌",
-            "s1_tag": "VOICE OF CUSTOMER INTELLIGENCE",
-            "s1_title": f"1. {client_name} 客户核心痛点与缺陷深度分析 (VoC)",
-            "rank1_badge": "🚨 第一核心缺陷", "rank2_badge": "⚠️ 第二核心缺陷",
-            "reviews_header": "💬 现场典型用户痛点原声 (Verbatim VoC)",
-            "chart_title": "可行动技术缺陷占比分布 (Actionable Defect Distribution)",
-            "chart_series": "负面占比", "others": "其他",
-            "s2_tag": "R&D TECHNICAL ROADMAP",
-            "s2_title": "2. 针对缺陷根因的下一代软硬件核心技术方案",
-            "sol_heading": "我方下一代软硬件一体化工程解决方案",
-            "s3_tag": "EXECUTIVE VALUE PROPOSITION",
-            "s3_title": "3. 面向高管层的商务竞标价值主张与收益 (Executive Pitch)",
-            "exec_pitch_title": f"EXECUTIVE STRATEGIC PITCH FOR {client_name.upper()}",
-            "p1_title": "📉 大幅降低退货与物流成本",
-            "p1_sub": "• 减少65%以上的遥控器故障退换货率\n• 显著节省售后换货往返物流运营支出\n• 增强硬件耐久度，延长整体产品生命周期",
-            "p2_title": "📞 遏制呼叫中心客服接入率",
-            "p2_sub": "• 从源头消除配对断连与电池耗电咨询\n• 降低每通客服工单处理综合成本\n• 提升用户初次开机配对自助成功率",
-            "p3_title": "⭐ 提升净推荐值(NPS)与品牌美誉",
-            "p3_sub": "• 无延迟、不卡顿的极致交互操控体验\n• 有效防范付费用户流失，增强品牌黏性\n• 确立行业领先的高端遥控器标杆品质",
-            "s4_tag": "FINANCIAL IMPACT & ROI SIMULATION",
-            "s4_title": f"4. {client_name} 基于在网用户的年度运营成本(OPEX)削减效益测算",
-            "roi_card1_title": "💰 预计年度 OPEX 节省总额",
-            "roi_card2_title": "📞 预计减少年度客服工单",
-            "roi_card3_title": "📦 预计减少故障退换物流",
-            "s5_tag": "AI DEEP ROOT CAUSE DIAGNOSIS",
-            "s5_title": "5. Gemini AI 缺陷深层根因 (Root Cause) 与竞标差异化建议",
-            "col1_title": "📋 客户核心痛点要约",
-            "col2_title": "🔬 软硬件工程深层根因剖析",
-            "col3_title": "🎯 B2B 竞标技术差异化建议",
-        },
-        "vi": {
-            "cover_tag": "GLOBAL RCU VOC INTELLIGENCE v4.0 | B2B STRATEGIC PROPOSAL",
-            "deck_title": f"Đề xuất sản phẩm điều khiển RCU cho {client_name} dựa trên phân tích VoC khách hàng",
-            "confidential": "BẢO MẬT (CONFIDENTIAL) - Dành riêng cho đánh giá B2B",
-            "date": "Ngày lập", "target": "Thương hiệu mục tiêu",
-            "s1_tag": "VOICE OF CUSTOMER INTELLIGENCE",
-            "s1_title": f"1. Điểm đau cốt lõi & Phân tích lỗi khách hàng {client_name} (VoC)",
-            "rank1_badge": "🚨 Lỗi trọng yếu số 1", "rank2_badge": "⚠️ Lỗi trọng yếu số 2",
-            "reviews_header": "💬 Trích dẫn khiếu nại thực tế từ khách hàng",
-            "chart_title": "Phân bố tỷ lệ lỗi kỹ thuật trọng yếu",
-            "chart_series": "Tỷ lệ lỗi", "others": "Khác",
-            "s2_tag": "R&D TECHNICAL ROADMAP",
-            "s2_title": "2. Giải pháp kỹ thuật H/W & F/W thế hệ mới theo nguyên nhân lỗi",
-            "sol_heading": "Giải pháp kỹ thuật H/W & F/W thế hệ mới từ chúng tôi",
-            "s3_tag": "EXECUTIVE VALUE PROPOSITION",
-            "s3_title": "3. Đề xuất đàm phán lãnh đạo C-Level & Giá trị chiến lược",
-            "exec_pitch_title": f"EXECUTIVE STRATEGIC PITCH FOR {client_name.upper()}",
-            "p1_title": "📉 Giảm tỷ lệ đổi trả & Logistics",
-            "p1_sub": "• Giảm hơn 65% tỷ lệ đổi trả do lỗi điều khiển\n• Tiết kiệm tối đa chi phí logistics đổi hàng\n• Nâng cao độ bền phần cứng, kéo dài tuổi thọ",
-            "p2_title": "📞 Cắt giảm cuộc gọi đến tổng đài CS",
-            "p2_sub": "• Loại bỏ thắc mắc về lỗi kết nối và hao pin\n• Giảm chi phí xử lý mỗi cuộc gọi hỗ trợ\n• Tăng tỷ lệ người dùng tự cài đặt thành công",
-            "p3_title": "⭐ Nâng cao chỉ số NPS & Giữ chân thuê bao",
-            "p3_sub": "• Trải nghiệm điều hướng mượt mà, không độ trễ\n• Ngăn ngừa rời mạng và giữ chân thuê bao VIP\n• Khẳng định hình ảnh thương hiệu cao cấp",
-            "s4_tag": "FINANCIAL IMPACT & ROI SIMULATION",
-            "s4_title": f"4. Ước tính Tiết Kiệm Chi Phí OPEX & ROI Hàng Năm cho {client_name}",
-            "roi_card1_title": "💰 Tổng OPEX Tiết Kiệm Dự Kiến",
-            "roi_card2_title": "📞 Số Cuộc Gọi CS Được Ngăn Ngừa",
-            "roi_card3_title": "📦 Số Lượt Đổi Trả Được Cắt Giảm",
-            "s5_tag": "AI DEEP ROOT CAUSE DIAGNOSIS",
-            "s5_title": "5. Chẩn đoán lỗi gốc rễ (Root Cause) & Đề xuất từ Gemini AI",
-            "col1_title": "📋 Tóm tắt điểm đau VoC",
-            "col2_title": "🔬 Chẩn đoán gốc rễ H/W & F/W",
-            "col3_title": "🎯 Đề xuất kỹ thuật tạo khác biệt B2B",
-        },
-        "th": {
-            "cover_tag": "GLOBAL RCU VOC INTELLIGENCE v4.0 | B2B STRATEGIC PROPOSAL",
-            "deck_title": f"ข้อเสนอผลิตภัณฑ์รีโมทคอนโทรลสำหรับ {client_name} โดยอิงข้อมูลเชิงลึก VoC ของลูกค้า",
-            "confidential": "เอกสารลับ (CONFIDENTIAL) - สำหรับการประเมินโครงการ B2B",
-            "date": "วันที่จัดทำ", "target": "แบรนด์เป้าหมาย",
-            "s1_tag": "VOICE OF CUSTOMER INTELLIGENCE",
-            "s1_title": f"1. การวิเคราะห์จุดบกพร่องและปัญหาสำคัญของผู้ใช้งาน {client_name} (VoC)",
-            "rank1_badge": "🚨 ข้อบกพร่องวิกฤตอันดับ 1", "rank2_badge": "⚠️ ข้อบกพร่องวิกฤตอันดับ 2",
-            "reviews_header": "💬 ข้อความสะท้อนปัญหาจริงจากผู้ใช้งาน",
-            "chart_title": "สัดส่วนข้อบกพร่องทางเทคนิคที่สามารถแก้ไขได้",
-            "chart_series": "สัดส่วนข้อร้องเรียน", "others": "อื่นๆ",
-            "s2_tag": "R&D TECHNICAL ROADMAP",
-            "s2_title": "2. โซลูชันวิศวกรรม H/W & F/W ยุคใหม่ตรงจุดตามสาเหตุข้อบกพร่อง",
-            "sol_heading": "โซลูชันวิศวกรรม H/W & F/W รุ่นใหม่จากเรา",
-            "s3_tag": "EXECUTIVE VALUE PROPOSITION",
-            "s3_title": "3. ข้อเสนอต่อผู้บริหารระดับสูง (C-Level) และผลประโยชน์เชิงกลยุทธ์",
-            "exec_pitch_title": f"EXECUTIVE STRATEGIC PITCH FOR {client_name.upper()}",
-            "p1_title": "📉 ลดอัตราการคืนสินค้าและค่าขนส่ง",
-            "p1_sub": "• ลดอัตราการเคลมและคืนสินค้ามากกว่า 65%\n• ประหยัดค่าใช้จ่ายด้านโลจิสติกส์เปลี่ยนอุปกรณ์\n• เพิ่มความทนทานของ H/W ยืดอายุการใช้งาน",
-            "p2_title": "📞 ตัดปัญหาการโทรเข้าศูนย์บริการลูกค้า",
-            "p2_sub": "• ขจัดปัญหาข้อสงสัยเรื่องการจับคู่และแบตเตอรี่\n• ลดต้นทุนต่อสายในการให้บริการลูกค้า\n• เพิ่มอัตราความสำเร็จในการติดตั้งด้วยตนเอง",
-            "p3_title": "⭐ เพิ่มคะแนน NPS และความภักดีต่อแบรนด์",
-            "p3_sub": "• ประสบการณ์ควบคุมลื่นไหล ปราศจากความหน่วง\n• ป้องกันการยกเลิกบริการและเพิ่มความพึงพอใจ\n• สร้างภาพลักษณ์แบรนด์รีโมทระดับพรีเมียม",
-            "s4_tag": "FINANCIAL IMPACT & ROI SIMULATION",
-            "s4_title": f"4. ประมาณการผลตอบแทน ROI และการลดต้นทุน OPEX รายปีสำหรับ {client_name}",
-            "roi_card1_title": "💰 ยอดรวม OPEX ที่ประหยัดได้ต่อปี",
-            "roi_card2_title": "📞 ปริมาณการโทรเข้า CS ที่ลดลง",
-            "roi_card3_title": "📦 การเปลี่ยน/คืนสินค้าที่ลดลง",
-            "s5_tag": "AI DEEP ROOT CAUSE DIAGNOSIS",
-            "s5_title": "5. การวินิจฉัยสาเหตุเชิงลึก (Root Cause) และข้อเสนอเชิงกลยุทธ์โดย Gemini AI",
-            "col1_title": "📋 สรุปประเด็นปัญหาสำคัญ (VoC)",
-            "col2_title": "🔬 วินิจฉัยสาเหตุเชิงลึก H/W & F/W",
-            "col3_title": "🎯 ข้อเสนอสร้างความแตกต่างเชิงเทคนิค B2B",
-        },
     }
     L = t_titles.get(lang, t_titles["en"])
     today_date = datetime.now().strftime("%Y-%m-%d")
 
-    # =========================================================
     # SLIDE 1: Cover
-    # =========================================================
     slide1 = prs.slides.add_slide(prs.slide_layouts[6])
     set_slide_bg(slide1, COLOR_NAVY_DARK)
 
@@ -888,9 +771,7 @@ def create_pptx_deck(
     p_m2.font.size = Pt(10)
     p_m2.font.color.rgb = RGBColor(148, 163, 184)
 
-    # =========================================================
-    # SLIDE 2: VoC Pain Points & Native Vector Doughnut Chart ('기타/일반' 배제)
-    # =========================================================
+    # SLIDE 2: VoC Pain Points & Native Vector Doughnut Chart
     slide2 = prs.slides.add_slide(prs.slide_layouts[6])
     set_slide_bg(slide2, COLOR_BG_PAGE)
     add_slide_header(slide2, L["s1_title"], L["s1_tag"])
@@ -969,7 +850,6 @@ def create_pptx_deck(
     p.font.bold = True
     p.font.color.rgb = COLOR_TEXT_MAIN
 
-    # '기타/일반'이 배제된 순수 기술 결함 차트 데이터 바인딩
     if cat_counts is not None and not cat_counts.empty:
         valid_counts = cat_counts[cat_counts.index != "기타/일반"]
         if not valid_counts.empty:
@@ -1004,9 +884,7 @@ def create_pptx_deck(
             plot.data_labels.show_percentage = True
             plot.data_labels.show_value = False
 
-    # =========================================================
     # SLIDE 3: R&D Solutions
-    # =========================================================
     slide3 = prs.slides.add_slide(prs.slide_layouts[6])
     set_slide_bg(slide3, COLOR_BG_PAGE)
     add_slide_header(slide3, L["s2_title"], L["s2_tag"])
@@ -1085,9 +963,7 @@ def create_pptx_deck(
         p.font.size = Pt(10.5)
         p.font.color.rgb = COLOR_TEXT_MUTED
 
-    # =========================================================
-    # SLIDE 4: Executive Pitch & 3대 비즈니스 가치 드라이버
-    # =========================================================
+    # SLIDE 4: Executive Pitch
     slide4 = prs.slides.add_slide(prs.slide_layouts[6])
     set_slide_bg(slide4, COLOR_BG_PAGE)
     add_slide_header(slide4, L["s3_title"], L["s3_tag"])
@@ -1145,9 +1021,7 @@ def create_pptx_deck(
             p_line.font.color.rgb = RGBColor(71, 85, 105)
             p_line.space_after = Pt(3)
 
-    # =========================================================
-    # SLIDE 5: [v4.0] Executive Financial Impact & ROI Simulation
-    # =========================================================
+    # SLIDE 5: Financial Impact & ROI Simulation
     if roi_data:
         slide_roi = prs.slides.add_slide(prs.slide_layouts[6])
         set_slide_bg(slide_roi, COLOR_BG_PAGE)
@@ -1246,9 +1120,7 @@ def create_pptx_deck(
             p.font.color.rgb = COLOR_ACCENT_GREEN if ct.startswith("✨") else COLOR_TEXT_MAIN
             p.space_after = Pt(4)
 
-    # =========================================================
-    # SLIDE 6: Gemini AI Root Cause (3열 카드 그리드)
-    # =========================================================
+    # SLIDE 6: Gemini AI Root Cause
     if ai_analysis and not ai_analysis.startswith("⚠️"):
         slide_ai = prs.slides.add_slide(prs.slide_layouts[6])
         set_slide_bg(slide_ai, COLOR_BG_PAGE)
@@ -1302,7 +1174,6 @@ def create_pptx_deck(
 # -------------------------------------------------------------
 st.sidebar.header(txt("sidebar_filter"))
 
-# [실시간 수집 연동]
 if st.sidebar.button(txt("sync_btn"), key="btn_sync_collector"):
     with st.spinner("🔄 글로벌 실시간 VoC 웹/스토어 수집 및 동기화 진행 중입니다... (약 15~30초 소요)"):
         try:
@@ -1402,7 +1273,6 @@ selected_regions = st.sidebar.multiselect(
     format_func=get_region_name,
 )
 
-# 카테고리 필터 목록에서도 '기타/일반'을 기본값에서 제외하여 순수 결함만 분석
 available_cats_all = sorted(list(df_all["Category"].unique()))
 pure_actionable_cats = [c for c in available_cats_all if c != "기타/일반"]
 
@@ -1431,7 +1301,7 @@ with st.sidebar.expander("🤖 Gemini AI API Settings", expanded=False):
     if user_api_key:
         st.session_state["gemini_api_key"] = user_api_key.strip()
 
-# 1차 필터링
+# 1차 원문 필터링
 filtered_df_raw = df_all[
     (df_all["Device_Type"].isin(selected_types))
     & (df_all["Brand"].isin(selected_brands))
@@ -1448,7 +1318,7 @@ if search_keyword.strip():
         .str.contains(search_keyword.strip(), case=False, na=False)
     ]
 
-# [핵심 정책] 분석 차트 및 제안서용: '기타/일반'을 완전 배제한 순수 엔지니어링 분석 데이터셋 생성
+# [핵심] 분석 및 시각화용: '기타/일반'을 완전 배제한 정밀 기술 결함 데이터셋
 filtered_df = filtered_df_raw[filtered_df_raw["Category"] != "기타/일반"].copy()
 if filtered_df.empty:
     filtered_df = filtered_df_raw.copy()
@@ -1456,7 +1326,7 @@ if filtered_df.empty:
 # -------------------------------------------------------------
 # 4. 상단 헤더 & 알림 배너
 # -------------------------------------------------------------
-st.title("📺 글로벌 RCU 고객 VOC 인텔리전스 대시보드 v4.0")
+st.title(txt("main_title"))
 st.caption(txt("main_caption"))
 
 if not filtered_df.empty:
@@ -1506,7 +1376,7 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 ])
 
 # =============================================================
-# TAB 1: 종합 모니터링 & 트렌드 + 인라인 드릴다운 (Drill-Down Inspector)
+# TAB 1: 종합 모니터링 & 트렌드 + 인라인 드릴다운
 # =============================================================
 with tab1:
     total_cnt = len(filtered_df)
@@ -1519,10 +1389,10 @@ with tab1:
         min_d = filtered_df["Parsed_Date"].min().strftime("%Y-%m-%d")
         max_d = filtered_df["Parsed_Date"].max().strftime("%Y-%m-%d")
         max_yw = filtered_df["Parsed_Date"].max().strftime("%Y-W%W")
-        st.caption(f"📅 **엔지니어링 결함 분석 기간**: {min_d} ~ {max_d} (최종 반영 주차: **{max_yw}**) · *불명확한 '기타/일반' 제외*")
+        st.caption(txt("data_period_info", min_d=min_d, max_d=max_d, max_yw=max_yw))
 
     m1, m2, m3, m4 = st.columns(4)
-    m1.metric("해결 대상 결함 건수", f"{total_cnt:,}")
+    m1.metric(txt("m_actionable_cnt"), f"{total_cnt:,}")
     m2.metric(
         txt("m_neg_rate"),
         f"{neg_ratio:.1f}%",
@@ -1552,7 +1422,7 @@ with tab1:
         return "현장 접수 사례 데이터 분석 중"
 
     with col_t1:
-        st.subheader("📊 정밀 엔지니어링 결함 분포 (Actionable VoC)")
+        st.subheader(txt("chart_cat_dist"))
         if not filtered_df.empty:
             cat_counts = filtered_df["Category"].value_counts().reset_index()
             cat_counts.columns = ["Category", "Count"]
@@ -1657,7 +1527,6 @@ with tab1:
     if not filtered_df.empty:
         available_inspect_cats = sorted(list(filtered_df["Category"].unique()))
 
-        # 차트 클릭 선택 시 selectbox 상태를 강제 동기화하여 지연 현상 방지
         if selected_slice and selected_slice in available_inspect_cats:
             st.session_state["inline_inspect_cat_select"] = selected_slice
             default_inspect_cat = selected_slice
@@ -1727,33 +1596,34 @@ with tab1:
                 st.info(txt("no_cat_reviews"))
 
     # -------------------------------------------------------------
-    # 주차별 트렌드 라인 차트 (동적 기간 선택기)
+    # 주차별 트렌드 라인 차트 (동적 기간 선택기 - 다국어 적용)
     # -------------------------------------------------------------
     st.write("")
     st.markdown("---")
     
     col_tr_h, col_tr_sel = st.columns([1.5, 1])
     with col_tr_h:
-        st.subheader("📈 주간별 정밀 기술 결함 발생 추이")
+        st.subheader(txt("chart_trend"))
     with col_tr_sel:
         trend_period_opt = st.radio(
-            "조회 기간",
-            options=["최근 12주", "최근 24주", "최근 1년", "전체 기간"],
+            txt("period_filter_label"),
+            options=["12w", "24w", "1y", "all"],
+            format_func=lambda k: txt(f"period_{k}"),
             horizontal=True,
             index=1,
             label_visibility="collapsed",
-            key="trend_period_selector_radio"
+            key="trend_period_selector_radio",
         )
 
     if not filtered_df.empty:
         trend_df = filtered_df.copy()
         max_dt = trend_df["Parsed_Date"].max()
 
-        if trend_period_opt == "최근 12주":
+        if trend_period_opt == "12w":
             trend_df = trend_df[trend_df["Parsed_Date"] >= (max_dt - pd.Timedelta(weeks=12))].copy()
-        elif trend_period_opt == "최근 24주":
+        elif trend_period_opt == "24w":
             trend_df = trend_df[trend_df["Parsed_Date"] >= (max_dt - pd.Timedelta(weeks=24))].copy()
-        elif trend_period_opt == "최근 1년":
+        elif trend_period_opt == "1y":
             trend_df = trend_df[trend_df["Parsed_Date"] >= (max_dt - pd.Timedelta(days=365))].copy()
 
         if trend_df.empty:
@@ -1793,7 +1663,7 @@ with tab1:
         st.plotly_chart(fig_trend, use_container_width=True)
 
 # =============================================================
-# TAB 2: 브랜드 1:1 벤치마크 ('기타/일반' 배제)
+# TAB 2: 브랜드 1:1 벤치마크
 # =============================================================
 with tab2:
     st.subheader(txt("t2_title"))
@@ -1836,13 +1706,13 @@ with tab2:
         )
 
         k1, k2, km, k3, k4 = st.columns([2, 2, 1, 2, 2])
-        k1.metric(f"[{brand_a}] 결함 분석 건수", f"{a_cnt:,}")
+        k1.metric(f"[{brand_a}] {txt('m_actionable_cnt')}", f"{a_cnt:,}")
         k2.metric(f"[{brand_a}] {txt('m_neg_rate')}", f"{a_neg_rate:.1f}%")
         km.markdown(
             "<h3 style='text-align: center; color: gray;'>VS</h3>",
             unsafe_allow_html=True,
         )
-        k3.metric(f"[{brand_b}] 결함 분석 건수", f"{b_cnt:,}")
+        k3.metric(f"[{brand_b}] {txt('m_actionable_cnt')}", f"{b_cnt:,}")
         k4.metric(
             f"[{brand_b}] {txt('m_neg_rate')}",
             f"{b_neg_rate:.1f}%",
@@ -1968,7 +1838,7 @@ with tab3:
             st.plotly_chart(fig_bigrams, use_container_width=True)
 
 # =============================================================
-# TAB 4: 원문 DB & 다운로드 (전체 원문 보존)
+# TAB 4: 원문 DB & 다운로드
 # =============================================================
 with tab4:
     st.subheader(txt("t4_title"))
@@ -2009,7 +1879,7 @@ with tab4:
     )
 
 # =============================================================
-# TAB 5: B2B 수주 Pitch & ROI 시뮬레이터 ('기타/일반' 원천 배제)
+# TAB 5: B2B 수주 Pitch & ROI 시뮬레이터 (다국어 완전 지원)
 # =============================================================
 with tab5:
     st.subheader(txt("t5_title"))
@@ -2034,7 +1904,6 @@ with tab5:
     if client_neg.empty:
         st.info(txt("no_neg_voc", client=target_client))
     else:
-        # '기타/일반'을 배제한 순수 정밀 결함 카운트
         client_cat_counts = client_neg[client_neg["Category"] != "기타/일반"]["Category"].value_counts()
         if client_cat_counts.empty:
             client_cat_counts = client_neg["Category"].value_counts()
@@ -2142,18 +2011,18 @@ with tab5:
         )
 
         # ---------------------------------------------------------
-        # [v4.0] B2B 수주 핵심: ROI & OPEX 절감 시뮬레이터 (최소값 0 반영)
+        # ROI & OPEX 절감 시뮬레이터 (다국어 완전 연동)
         # ---------------------------------------------------------
         st.write("")
         st.markdown("---")
-        st.markdown(f"#### 💰 [B2B 수주 핵심] {target_client} 가입자 기반 ROI & OPEX 비용 절감 시뮬레이터")
-        st.caption("고객사의 활성 셋톱박스/단말 보급 규모에 맞춘 연간 CS 콜 인입 비용 및 불량 반품 물류비 절감액을 실시간 산출합니다.")
+        st.markdown(f"#### {txt('sim_title', client=target_client)}")
+        st.caption(txt("sim_caption"))
 
-        with st.expander("⚙️ 시뮬레이션 파라미터 세부 설정", expanded=True):
+        with st.expander(txt("sim_expander"), expanded=True):
             col_sim1, col_sim2, col_sim3 = st.columns(3)
             with col_sim1:
                 sub_count = st.number_input(
-                    "고객사 활성 가입자/단말 수",
+                    txt("sim_sub_count"),
                     min_value=0,
                     max_value=50000000,
                     value=1000000,
@@ -2161,18 +2030,18 @@ with tab5:
                     key="sim_sub_count"
                 )
                 reduction_rate = st.slider(
-                    "당사 차세대 RCU 결함 억제율 (%)",
+                    txt("sim_reduction_rate"),
                     min_value=0,
                     max_value=100,
                     value=65,
                     step=5,
                     key="sim_reduction_rate",
-                    help="당사 차세대 H/W & F/W 솔루션 도입 시 기대되는 상위 결함(방전, 페어링 끊김 등) 억제율"
+                    help=txt("sim_reduction_help")
                 )
 
             with col_sim2:
                 cs_rate = st.number_input(
-                    "연간 RCU 관련 CS 인입률 (%)",
+                    txt("sim_cs_rate"),
                     min_value=0.0,
                     max_value=100.0,
                     value=4.5,
@@ -2180,7 +2049,7 @@ with tab5:
                     key="sim_cs_rate"
                 )
                 cs_cost = st.number_input(
-                    "CS 상담 1건당 처리 원가 ($)",
+                    txt("sim_cs_cost"),
                     min_value=0.0,
                     max_value=100.0,
                     value=4.5,
@@ -2190,7 +2059,7 @@ with tab5:
 
             with col_sim3:
                 return_rate = st.number_input(
-                    "연간 불량 교체/반품률 (%)",
+                    txt("sim_return_rate"),
                     min_value=0.0,
                     max_value=100.0,
                     value=1.2,
@@ -2198,7 +2067,7 @@ with tab5:
                     key="sim_return_rate"
                 )
                 return_cost = st.number_input(
-                    "단말 원가 + 왕복 물류비 ($)",
+                    txt("sim_return_cost"),
                     min_value=0.0,
                     max_value=200.0,
                     value=8.0,
@@ -2231,24 +2100,35 @@ with tab5:
             "saved_total_cost": saved_total_cost,
         }
 
-        # 정밀 실수 연산 (소수점 절삭 버그 해결)
-        krw_amount_eok = (saved_total_cost * 1350.0) / 100000000.0
+        # 언어별 통화 및 델타 현지화 포맷팅
+        if curr_lang == "ko":
+            cost_delta = f"약 {(saved_total_cost * 1350.0) / 100000000.0:,.1f}억 원 / 년"
+            cs_delta = f"-{reduction_rate}% 감축"
+            return_delta = f"-{reduction_rate}% 반품 절감"
+        elif curr_lang == "zh":
+            cost_delta = f"约 {saved_total_cost * 7.2 / 10000:,.1f}万 人民币 / 年"
+            cs_delta = f"-{reduction_rate}% 减少"
+            return_delta = f"-{reduction_rate}% 换货削减"
+        else:
+            cost_delta = f"~${saved_total_cost/1000000:,.2f}M / Year" if saved_total_cost >= 1000000 else f"~${saved_total_cost:,.0f} / Year"
+            cs_delta = f"-{reduction_rate}% Reduction"
+            return_delta = f"-{reduction_rate}% Reduced Swaps"
 
         col_roi1, col_roi2, col_roi3 = st.columns(3)
         col_roi1.metric(
-            "💰 연간 총 OPEX 절감 추정액",
+            txt("sim_kpi_total"),
             f"${saved_total_cost:,.0f}",
-            delta=f"약 {krw_amount_eok:,.1f}억 원 / 년",
+            delta=cost_delta,
         )
         col_roi2.metric(
-            "📞 연간 CS 문의 인입 억제",
-            f"{saved_cs_calls:,} 건",
-            delta=f"-{reduction_rate}% 감축",
+            txt("sim_kpi_cs"),
+            f"{saved_cs_calls:,} {txt('sim_unit_calls')}",
+            delta=cs_delta,
         )
         col_roi3.metric(
-            "📦 연간 불량 교체/반품 방지",
-            f"{saved_returns:,} 대",
-            delta=f"-{reduction_rate}% 반품 절감",
+            txt("sim_kpi_return"),
+            f"{saved_returns:,} {txt('sim_unit_devices')}",
+            delta=return_delta,
         )
 
         st.write("")
@@ -2310,7 +2190,7 @@ with tab5:
             lang=curr_lang,
         )
         st.download_button(
-            label=f"📊 [{target_client}] 임원 보고 및 B2B 수주 제안서 다운로드 (.pptx v4.0)",
+            label=txt("btn_pptx_down_v4", client=target_client),
             data=ppt_file,
             file_name=f"B2B_Pitch_{target_client.replace('/', '_')}_{curr_lang}_v4.0_{today_date}.pptx",
             mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
