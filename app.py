@@ -2238,7 +2238,7 @@ with tab5:
                 cs_cost = st.number_input(
                     txt("sim_cs_cost"),
                     min_value=0.0,
-                    max_value=100.0,
+                    max_value=5000.0,
                     value=4.5,
                     step=0.5,
                     key="sim_cs_cost"
@@ -2256,7 +2256,7 @@ with tab5:
                 return_cost = st.number_input(
                     txt("sim_return_cost"),
                     min_value=0.0,
-                    max_value=200.0,
+                    max_value=5000.0,
                     value=8.0,
                     step=0.5,
                     key="sim_return_cost"
