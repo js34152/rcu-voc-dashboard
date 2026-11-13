@@ -11,8 +11,11 @@ import pandas as pd
 from youtube_comment_downloader import SORT_BY_RECENT, YoutubeCommentDownloader
 
 # -------------------------------------------------------------
-# 0. 진짜 고객 VoC 판별 필터링 규칙
+# 0. 경로 절대화 및 광고/쇼핑몰 노이즈 판별 필터링 규칙
 # -------------------------------------------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "voc_db.csv")
+
 PROMO_PATTERNS = [
     r"delivery", r"shipping", r"hassle-free", r"returns?", r"cash on delivery",
     r"shop for", r"buy online", r"in stock", r"order now", r"price in", r"discount",
@@ -23,32 +26,17 @@ PROMO_PATTERNS = [
     r"seamless compatibility", r"official website", r"features an? ", r"leading provider",
     r"welcome to", r"overview", r"specifications?:", r"package includes?:",
     r"guaranteed quality", r"wide compatibility", r"genuine original", r"perfect replacement",
-    r"소개합니다", r"제공합니다", r"특징:", r"공식 홈페이지", r"출시했습니다", r"완벽 호환"
-]
-
-EXPERIENCE_PATTERNS = [
-    r"\bi\b", r"\bmy\b", r"\bme\b", r"\bmine\b", r"\bwe\b",
-    r"내가", r"저는", r"제가", r"우리", r"내 ", r"저희",
-    r"bought", r"purchased", r"using", r"used", r"after [0-9]+",
-    r"weeks?", r"months?", r"days?", r"update", r"stopped", r"broke",
-    r"산 지", r"구입", r"구매한", r"쓰고 있", r"쓰다가", r"업데이트 후", r"교체",
-    r"terrible", r"worst", r"frustrat", r"annoy", r"disappoint", r"hate",
-    r"useless", r"garbage", r"trash", r"sucks?", r"fail", r"not work", r"broken",
-    r"disconnect", r"load shedding", r"lag", r"freeze",
-    r"짜증", r"불편", r"답답", r"최악", r"안 됨", r"고장", r"먹통", r"렉"
+    r"소개합니다", r"제공합니다", r"특징:", r"공식 홈페이지", r"출시했습니다", r"완벽 호환",
 ]
 
 
 def is_genuine_voc(text):
-    text_clean = str(text).lower()
+    text_clean = str(text).lower().strip()
+    if len(text_clean) < 25:
+        return False
     for pattern in PROMO_PATTERNS:
         if re.search(pattern, text_clean):
             return False
-    has_experience = any(re.search(p, text_clean) for p in EXPERIENCE_PATTERNS)
-    if not has_experience:
-        return False
-    if len(text_clean.strip()) < 25:
-        return False
     return True
 
 
@@ -118,15 +106,18 @@ def get_localized_queries(device, brand, region):
     return queries
 
 
-def collect_advanced_voc():
+def collect_advanced_voc(quick_mode=True):
+    """
+    quick_mode=True : 대시보드 웹 UI 버튼 클릭 시 타임아웃 방지를 위한 고속 최신 수집 (~20초)
+    quick_mode=False: 터미널/GitHub Actions 정기 배치 실행용 전체 심층 수집
+    """
     today_str = datetime.now().strftime("%Y-%m-%d")
-    db_file = "voc_db.csv"
 
-    if os.path.exists(db_file):
+    if os.path.exists(DB_PATH):
         try:
-            old_df = pd.read_csv(db_file, encoding="utf-8-sig")
+            old_df = pd.read_csv(DB_PATH, encoding="utf-8-sig")
         except Exception:
-            old_df = pd.read_csv(db_file, encoding="utf-8")
+            old_df = pd.read_csv(DB_PATH, encoding="utf-8")
         existing_reviews = set(old_df["Review"].astype(str).str.strip())
         print(f"📂 기존 DB 로드 완료: 총 {len(old_df):,}건 (기존 등록 리뷰 {len(existing_reviews):,}개)")
     else:
@@ -135,8 +126,12 @@ def collect_advanced_voc():
 
     new_data = []
 
+    play_count = 60 if quick_mode else 400
+    yt_limit = 20 if quick_mode else 60
+    ddg_targets = TARGET_RCU_LIST[:8] if quick_mode else TARGET_RCU_LIST[:25]
+
     # -------------------------------------------------------------
-    # 1. Google Play Store (★ 실제 고객 작성일 rev['at'] 반영)
+    # 1. Google Play Store (실제 고객 작성일 rev['at'] 반영)
     # -------------------------------------------------------------
     playstore_apps = {
         "com.kt.otn": ("KT (지니TV)", "지니 TV 모바일", "kr", "ko"),
@@ -161,7 +156,7 @@ def collect_advanced_voc():
         "com.amazon.storm.lightning.client.aosp": ("Amazon Fire TV", "Fire TV App", "us", "en"),
     }
 
-    print("\n[1/4] 📱 Google Play Store 최신 리뷰 & 실제 작성일자 수집 중...")
+    print(f"\n[1/4] 📱 Google Play Store 최신 리뷰 수집 중 ({'고속 모드' if quick_mode else '전체 모드'})...")
     for app_id, (brand, app_name, country_code, lang_code) in playstore_apps.items():
         try:
             res, _ = reviews(
@@ -169,7 +164,7 @@ def collect_advanced_voc():
                 lang=lang_code,
                 country=country_code,
                 sort=Sort.NEWEST,
-                count=400,
+                count=play_count,
             )
             added_count = 0
             for rev in res:
@@ -178,7 +173,6 @@ def collect_advanced_voc():
                 if len(text) < 15 or review_full in existing_reviews:
                     continue
 
-                # ★ 실제 리뷰 작성일 추출 (없으면 today_str 대체)
                 rev_date_obj = rev.get("at")
                 if isinstance(rev_date_obj, datetime):
                     actual_date_str = rev_date_obj.strftime("%Y-%m-%d")
@@ -197,12 +191,12 @@ def collect_advanced_voc():
                 })
                 added_count += 1
             if added_count > 0:
-                print(f"  - [{country_code.upper()}] {brand} ({app_name}): 신규 {added_count}건 추가 (실제 작성일 반영)")
-        except Exception as e:
+                print(f"  - [{country_code.upper()}] {brand} ({app_name}): 신규 {added_count}건 추가")
+        except Exception:
             continue
 
     # -------------------------------------------------------------
-    # 2. YouTube (★ SORT_BY_RECENT 최신순 정렬로 변경)
+    # 2. YouTube 최신 리뷰 댓글 수집
     # -------------------------------------------------------------
     print("\n[2/4] 🎬 YouTube 최신 실시간 리뷰 댓글 수집 중...")
     try:
@@ -223,16 +217,15 @@ def collect_advanced_voc():
         multilingual_keywords = [
             "remote", "button", "work", "issue", "battery", "pair", "bad", "click", "lag",
             "리모컨", "연결", "먹통", "배터리", "リモコン", "反応", "故障", "電池",
-            "télécommande", "synchro", "panne", "Fernbedienung", "defekt", "load shedding"
+            "télécommande", "synchro", "panne", "Fernbedienung", "defekt", "load shedding",
         ]
 
         for brand, url in youtube_videos:
             try:
-                # ★ 최신순(SORT_BY_RECENT) 댓글 조회
                 comments = downloader.get_comments_from_url(url, sort_by=SORT_BY_RECENT)
                 count = 0
                 for comment in comments:
-                    if count >= 60:
+                    if count >= yt_limit:
                         break
                     text = comment.get("text", "").strip()
                     if len(text) < 15 or text in existing_reviews:
@@ -292,9 +285,8 @@ def collect_advanced_voc():
                 if not any(w in t_lower for w in ["remote", "control", "button", "battery", "lag", "pairing", "리모컨"]):
                     continue
 
-                # 실제 RSS 발행일 파싱 시도
                 entry_date_str = today_str
-                if hasattr(entry, 'published_parsed') and entry.published_parsed:
+                if hasattr(entry, "published_parsed") and entry.published_parsed:
                     try:
                         entry_date_str = datetime(*entry.published_parsed[:3]).strftime("%Y-%m-%d")
                     except Exception:
@@ -317,12 +309,12 @@ def collect_advanced_voc():
             continue
 
     # -------------------------------------------------------------
-    # 4. DuckDuckGo (★ 최근 1주~1개월 최신 필터 timelimit='m' 적용)
+    # 4. DuckDuckGo (최근 1개월 내 등록 글 우선 수집)
     # -------------------------------------------------------------
-    print(f"\n[4/4] 🌐 웹/포럼 실시간 VoC 수집 (최근 등록 글 우선 검색)...")
+    print("\n[4/4] 🌐 웹/포럼 실시간 VoC 수집 (최근 등록 글 우선 검색)...")
     try:
         with DDGS() as ddgs:
-            for idx, item in enumerate(TARGET_RCU_LIST[:20], 1):  # 핵심 브랜드 우선
+            for idx, item in enumerate(ddg_targets, 1):
                 brand = item["Brand"]
                 device = item["Device"]
                 region = item["Region"]
@@ -333,8 +325,7 @@ def collect_advanced_voc():
                     if dev_count >= 5:
                         break
                     try:
-                        # timelimit='m'으로 최근 1달 내 등록된 최신 이슈 위주 쿼리
-                        results = list(ddgs.text(query, max_results=5, timelimit='m'))
+                        results = list(ddgs.text(query, max_results=5, timelimit="m"))
                         for res in results:
                             body = res.get("body", "").strip()
                             if len(body) < 30 or body in existing_reviews:
@@ -351,9 +342,9 @@ def collect_advanced_voc():
                                 "Review": f"[{device}] {body[:350]}",
                             })
                             dev_count += 1
-                        time.sleep(random.uniform(0.5, 1.0))
+                        time.sleep(random.uniform(0.3, 0.7))
                     except Exception:
-                        time.sleep(0.5)
+                        time.sleep(0.4)
                         continue
                 if dev_count > 0:
                     print(f"  - [{idx}] [{region}] {device}: 신규 {dev_count}건 추가")
@@ -374,15 +365,14 @@ def collect_advanced_voc():
         .reset_index(drop=True)
     )
 
-    combined_df.to_csv(db_file, index=False, encoding="utf-8-sig")
-    print(
-        f"\n🎉 [수집 완료] 신규 {len(new_data):,}건 수집 완료! 총 누적: {len(combined_df):,}건"
-    )
-    # 수집된 날짜 범위 출력
-    combined_df["Parsed_Temp"] = pd.to_datetime(combined_df["Collected_Date"].str.slice(0, 10), errors="coerce")
-    print(f"📅 현재 DB 날짜 범위: {combined_df['Parsed_Temp'].min().strftime('%Y-%m-%d')} ~ {combined_df['Parsed_Temp'].max().strftime('%Y-%m-%d')}")
-    print(f"📊 최신 주차: {combined_df['Parsed_Temp'].dt.strftime('%Y-W%W').max()}")
+    combined_df.to_csv(DB_PATH, index=False, encoding="utf-8-sig")
+    print(f"\n🎉 [수집 완료] 신규 {len(new_data):,}건 수집 완료! 총 누적: {len(combined_df):,}건")
+
+    parsed_temp = pd.to_datetime(combined_df["Collected_Date"].astype(str).str.slice(0, 10), errors="coerce").dropna()
+    if not parsed_temp.empty:
+        print(f"📅 현재 DB 날짜 범위: {parsed_temp.min().strftime('%Y-%m-%d')} ~ {parsed_temp.max().strftime('%Y-%m-%d')}")
+        print(f"📊 최신 주차: {parsed_temp.dt.strftime('%Y-W%W').max()}")
 
 
 if __name__ == "__main__":
-    collect_advanced_voc()
+    collect_advanced_voc(quick_mode=False)

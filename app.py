@@ -408,7 +408,7 @@ if df_all.empty:
 
 
 # -------------------------------------------------------------
-# Gemini AI 연동 엔진 (텍스트 모델 전용 필터링 및 포맷 정밀화)
+# Gemini AI 연동 엔진
 # -------------------------------------------------------------
 def analyze_voc_with_gemini(api_key, client_name, p_issue, s_issue, sample_reviews, lang="ko"):
     api_key = str(api_key).strip().strip('"').strip("'")
@@ -525,7 +525,7 @@ Be concise, highly professional, and engineering-grade. Do not include introduct
 
 
 # -------------------------------------------------------------
-# PPTX 다국어 생성 엔진 (16:9 와이드 & '기타/일반' 원천 배제)
+# PPTX 다국어 생성 엔진 (16:9 와이드 & 5개국어 100% 현지화)
 # -------------------------------------------------------------
 COLOR_NAVY_DARK     = RGBColor(15, 23, 42)    # #0F172A
 COLOR_NAVY_SURFACE  = RGBColor(30, 41, 59)    # #1E293B
@@ -673,6 +673,8 @@ def create_pptx_deck(
             "s2_tag": "R&D TECHNICAL ROADMAP",
             "s2_title": "2. 결함 원인별 차세대 H/W & F/W 기술 해결 솔루션",
             "sol_heading": "당사 차세대 H/W & F/W 엔지니어링 솔루션",
+            "s2_fallback_title": "🛡️ 전수 품질 보증 및 신뢰성 검증 체계",
+            "s2_fallback_body": "당사 표준 5단계 전수 검사 및 신뢰성 테스트 프로토콜이 기본 적용됩니다.",
             "s3_tag": "EXECUTIVE VALUE PROPOSITION",
             "s3_title": "3. 최고경영진(C-Level) 제안 및 기대효과 (Executive Pitch)",
             "exec_pitch_title": f"EXECUTIVE STRATEGIC PITCH FOR {client_name.upper()}",
@@ -687,6 +689,17 @@ def create_pptx_deck(
             "roi_card1_title": "💰 연간 총 OPEX 예상 절감액",
             "roi_card2_title": "📞 연간 CS 문의 인입 예방",
             "roi_card3_title": "📦 연간 불량 교체/반품 억제",
+            "unit_cases": "건", "unit_units": "대",
+            "roi_base_title": "📊 고객사 시뮬레이션 산출 기준 (Baseline)",
+            "roi_p1": "적용 활성 가입자/단말 수량",
+            "roi_p2": "고객사 연간 RCU CS 상담 인입률",
+            "roi_p3": "고객센터 1건당 상담 처리 원가",
+            "roi_p4": "연간 실물 교체/불량 반품률",
+            "roi_p5": "단말 조달 원가 및 왕복 물류비",
+            "roi_p6": "당사 차세대 H/W & F/W 결함 개선 목표",
+            "roi_sav_title": "🎯 연간 세부 비용 절감 분석 (Annual Savings)",
+            "roi_s1": "CS 상담 콜센터 비용 절감",
+            "roi_s2": "실물 반품/교체 물류비 절감",
             "s5_tag": "AI DEEP ROOT CAUSE DIAGNOSIS",
             "s5_title": "5. Gemini AI 심층 결함 원인 (Root Cause) & 차별화 제언",
             "col1_title": "📋 고객 VoC 핵심 요약",
@@ -707,6 +720,8 @@ def create_pptx_deck(
             "s2_tag": "R&D TECHNICAL ROADMAP",
             "s2_title": "2. Next-Gen H/W & F/W Engineering Countermeasures by Defect",
             "sol_heading": "Proprietary Next-Gen H/W & F/W Engineering Countermeasures",
+            "s2_fallback_title": "🛡️ Total Quality & Reliability Assurance",
+            "s2_fallback_body": "Standard 5-stage 100% inspection and reliability test protocols are applied by default.",
             "s3_tag": "EXECUTIVE VALUE PROPOSITION",
             "s3_title": "3. Executive Proposal & Strategic Value Drivers (Executive Pitch)",
             "exec_pitch_title": f"EXECUTIVE STRATEGIC PITCH FOR {client_name.upper()}",
@@ -721,11 +736,163 @@ def create_pptx_deck(
             "roi_card1_title": "💰 Total Annual OPEX Saved",
             "roi_card2_title": "📞 Annual CS Calls Prevented",
             "roi_card3_title": "📦 Annual Hardware Swaps Avoided",
+            "unit_cases": "Tickets", "unit_units": "Units",
+            "roi_base_title": "📊 Simulation Baseline Parameters",
+            "roi_p1": "Active Subscribers / Devices",
+            "roi_p2": "Annual RCU CS Ticket Rate",
+            "roi_p3": "Average Cost per CS Ticket",
+            "roi_p4": "Annual Hardware Return/RMA Rate",
+            "roi_p5": "Device Unit Cost + Roundtrip Logistics",
+            "roi_p6": "Next-Gen H/W & F/W Defect Reduction Target",
+            "roi_sav_title": "🎯 Annual Cost Savings Breakdown",
+            "roi_s1": "CS Call Center Overhead Savings",
+            "roi_s2": "Hardware RMA & Logistics Savings",
             "s5_tag": "AI DEEP ROOT CAUSE DIAGNOSIS",
             "s5_title": "5. Gemini AI Deep Defect Root Cause & Strategic Recommendations",
             "col1_title": "📋 Core VoC Pain Points",
             "col2_title": "🔬 H/W & F/W Root Cause Diagnosis",
             "col3_title": "🎯 B2B Differentiation Strategy",
+        },
+        "zh": {
+            "cover_tag": "GLOBAL RCU VOC INTELLIGENCE v4.0 | B2B STRATEGIC PROPOSAL",
+            "deck_title": f"基于客户 VoC 洞察的 {client_name} 遥控器产品方案建议书",
+            "confidential": "机密 (CONFIDENTIAL) - 仅限商务竞标评估",
+            "date": "编制日期", "target": "目标品牌",
+            "s1_tag": "VOICE OF CUSTOMER INTELLIGENCE",
+            "s1_title": f"1. {client_name} 客户核心痛点与缺陷深度分析 (VoC)",
+            "rank1_badge": "🚨 第一核心缺陷", "rank2_badge": "⚠️ 第二核心缺陷",
+            "reviews_header": "💬 现场典型用户痛点原声 (Verbatim VoC)",
+            "chart_title": "可行动技术缺陷占比分布 (Actionable Defect Distribution)",
+            "chart_series": "负面占比", "others": "其他",
+            "s2_tag": "R&D TECHNICAL ROADMAP",
+            "s2_title": "2. 针对缺陷根因的下一代软硬件核心技术方案",
+            "sol_heading": "我方下一代软硬件一体化工程解决方案",
+            "s2_fallback_title": "🛡️ 全流程品质保证与可靠性测试体系",
+            "s2_fallback_body": "默认应用我方标准 5 阶段全检及高标准可靠性环境测试协议。",
+            "s3_tag": "EXECUTIVE VALUE PROPOSITION",
+            "s3_title": "3. 面向高管层的商务竞标价值主张与收益 (Executive Pitch)",
+            "exec_pitch_title": f"EXECUTIVE STRATEGIC PITCH FOR {client_name.upper()}",
+            "p1_title": "📉 大幅降低退货与物流成本",
+            "p1_sub": "• 减少65%以上的遥控器故障退换货率\n• 显著节省售后换货往返物流运营支出\n• 增强硬件耐久度，延长整体产品生命周期",
+            "p2_title": "📞 遏制呼叫中心客服接入率",
+            "p2_sub": "• 从源头消除配对断连与电池耗电咨询\n• 降低每通客服工单处理综合成本\n• 提升用户初次开机配对自助成功率",
+            "p3_title": "⭐ 提升净推荐值(NPS)与品牌美誉",
+            "p3_sub": "• 无延迟、不卡顿的极致交互操控体验\n• 有效防范付费用户流失，增强品牌黏性\n• 确立行业领先的高端遥控器标杆品质",
+            "s4_tag": "FINANCIAL IMPACT & ROI SIMULATION",
+            "s4_title": f"4. {client_name} 基于在网用户的年度运营成本(OPEX)削减效益测算",
+            "roi_card1_title": "💰 预计年度 OPEX 节省总额",
+            "roi_card2_title": "📞 预计减少年度客服工单",
+            "roi_card3_title": "📦 预计减少故障退换物流",
+            "unit_cases": "单", "unit_units": "台",
+            "roi_base_title": "📊 客户模拟测算基准参数 (Baseline)",
+            "roi_p1": "适用在网用户/终端数量",
+            "roi_p2": "年度遥控器相关客服工单率",
+            "roi_p3": "每通客服工单综合处理成本",
+            "roi_p4": "年度故障换货/退换率",
+            "roi_p5": "终端硬件成本与往返物流费",
+            "roi_p6": "下一代软硬件缺陷抑制目标",
+            "roi_sav_title": "🎯 年度细分成本削减分析 (Annual Savings)",
+            "roi_s1": "呼叫中心客服成本节省",
+            "roi_s2": "售后换货与物流支出节省",
+            "s5_tag": "AI DEEP ROOT CAUSE DIAGNOSIS",
+            "s5_title": "5. Gemini AI 缺陷深层根因 (Root Cause) 与竞标差异化建议",
+            "col1_title": "📋 客户核心痛点要约",
+            "col2_title": "🔬 软硬件工程深层根因剖析",
+            "col3_title": "🎯 B2B 竞标技术差异化建议",
+        },
+        "vi": {
+            "cover_tag": "GLOBAL RCU VOC INTELLIGENCE v4.0 | B2B STRATEGIC PROPOSAL",
+            "deck_title": f"Đề xuất sản phẩm điều khiển RCU cho {client_name} dựa trên phân tích VoC khách hàng",
+            "confidential": "BẢO MẬT (CONFIDENTIAL) - Dành riêng cho đánh giá B2B",
+            "date": "Ngày lập", "target": "Thương hiệu mục tiêu",
+            "s1_tag": "VOICE OF CUSTOMER INTELLIGENCE",
+            "s1_title": f"1. Điểm đau cốt lõi & Phân tích lỗi khách hàng {client_name} (VoC)",
+            "rank1_badge": "🚨 Lỗi trọng yếu số 1", "rank2_badge": "⚠️ Lỗi trọng yếu số 2",
+            "reviews_header": "💬 Trích dẫn khiếu nại thực tế từ khách hàng",
+            "chart_title": "Phân bố tỷ lệ lỗi kỹ thuật trọng yếu",
+            "chart_series": "Tỷ lệ lỗi", "others": "Khác",
+            "s2_tag": "R&D TECHNICAL ROADMAP",
+            "s2_title": "2. Giải pháp kỹ thuật H/W & F/W thế hệ mới theo nguyên nhân lỗi",
+            "sol_heading": "Giải pháp kỹ thuật H/W & F/W thế hệ mới từ chúng tôi",
+            "s2_fallback_title": "🛡️ Hệ thống Đảm bảo Chất lượng & Độ tin cậy Toàn diện",
+            "s2_fallback_body": "Áp dụng mặc định quy trình kiểm tra 100% 5 bước tiêu chuẩn và thử nghiệm độ bền nghiêm ngặt.",
+            "s3_tag": "EXECUTIVE VALUE PROPOSITION",
+            "s3_title": "3. Đề xuất đàm phán lãnh đạo C-Level & Giá trị chiến lược",
+            "exec_pitch_title": f"EXECUTIVE STRATEGIC PITCH FOR {client_name.upper()}",
+            "p1_title": "📉 Giảm tỷ lệ đổi trả & Logistics",
+            "p1_sub": "• Giảm hơn 65% tỷ lệ đổi trả do lỗi điều khiển\n• Tiết kiệm tối đa chi phí logistics đổi hàng\n• Nâng cao độ bền phần cứng, kéo dài tuổi thọ",
+            "p2_title": "📞 Cắt giảm cuộc gọi đến tổng đài CS",
+            "p2_sub": "• Loại bỏ thắc mắc về lỗi kết nối và hao pin\n• Giảm chi phí xử lý mỗi cuộc gọi hỗ trợ\n• Tăng tỷ lệ người dùng tự cài đặt thành công",
+            "p3_title": "⭐ Nâng cao chỉ số NPS & Giữ chân thuê bao",
+            "p3_sub": "• Trải nghiệm điều hướng mượt mà, không độ trễ\n• Ngăn ngừa rời mạng và giữ chân thuê bao VIP\n• Khẳng định hình ảnh thương hiệu cao cấp",
+            "s4_tag": "FINANCIAL IMPACT & ROI SIMULATION",
+            "s4_title": f"4. Ước tính Tiết Kiệm Chi Phí OPEX & ROI Hàng Năm cho {client_name}",
+            "roi_card1_title": "💰 Tổng OPEX Tiết Kiệm Dự Kiến",
+            "roi_card2_title": "📞 Số Cuộc Gọi CS Được Ngăn Ngừa",
+            "roi_card3_title": "📦 Số Lượt Đổi Trả Được Cắt Giảm",
+            "unit_cases": "Lượt", "unit_units": "Thiết bị",
+            "roi_base_title": "📊 Thông số cơ sở mô phỏng (Baseline)",
+            "roi_p1": "Số thuê bao/thiết bị đang hoạt động",
+            "roi_p2": "Tỷ lệ gọi hỗ trợ CS hàng năm",
+            "roi_p3": "Chi phí xử lý mỗi cuộc gọi CS",
+            "roi_p4": "Tỷ lệ đổi trả phần cứng hàng năm",
+            "roi_p5": "Giá thành thiết bị + Logistics hai chiều",
+            "roi_p6": "Mục tiêu giảm lỗi H/W & F/W thế hệ mới",
+            "roi_sav_title": "🎯 Phân tích tiết kiệm chi phí hàng năm",
+            "roi_s1": "Tiết kiệm chi phí tổng đài CS",
+            "roi_s2": "Tiết kiệm chi phí đổi trả & Logistics",
+            "s5_tag": "AI DEEP ROOT CAUSE DIAGNOSIS",
+            "s5_title": "5. Chẩn đoán lỗi gốc rễ (Root Cause) & Đề xuất từ Gemini AI",
+            "col1_title": "📋 Tóm tắt điểm đau VoC",
+            "col2_title": "🔬 Chẩn đoán gốc rễ H/W & F/W",
+            "col3_title": "🎯 Đề xuất kỹ thuật tạo khác biệt B2B",
+        },
+        "th": {
+            "cover_tag": "GLOBAL RCU VOC INTELLIGENCE v4.0 | B2B STRATEGIC PROPOSAL",
+            "deck_title": f"ข้อเสนอผลิตภัณฑ์รีโมทคอนโทรลสำหรับ {client_name} โดยอิงข้อมูลเชิงลึก VoC ของลูกค้า",
+            "confidential": "เอกสารลับ (CONFIDENTIAL) - สำหรับการประเมินโครงการ B2B",
+            "date": "วันที่จัดทำ", "target": "แบรนด์เป้าหมาย",
+            "s1_tag": "VOICE OF CUSTOMER INTELLIGENCE",
+            "s1_title": f"1. การวิเคราะห์จุดบกพร่องและปัญหาสำคัญของผู้ใช้งาน {client_name} (VoC)",
+            "rank1_badge": "🚨 ข้อบกพร่องวิกฤตอันดับ 1", "rank2_badge": "⚠️ ข้อบกพร่องวิกฤตอันดับ 2",
+            "reviews_header": "💬 ข้อความสะท้อนปัญหาจริงจากผู้ใช้งาน",
+            "chart_title": "สัดส่วนข้อบกพร่องทางเทคนิคที่สามารถแก้ไขได้",
+            "chart_series": "สัดส่วนข้อร้องเรียน", "others": "อื่นๆ",
+            "s2_tag": "R&D TECHNICAL ROADMAP",
+            "s2_title": "2. โซลูชันวิศวกรรม H/W & F/W ยุคใหม่ตรงจุดตามสาเหตุข้อบกพร่อง",
+            "sol_heading": "โซลูชันวิศวกรรม H/W & F/W รุ่นใหม่จากเรา",
+            "s2_fallback_title": "🛡️ ระบบรับประกันคุณภาพและความน่าเชื่อถือครบวงจร",
+            "s2_fallback_body": "ใช้โปรโตคอลการตรวจสอบคุณภาพ 5 ขั้นตอนมาตรฐานและการทดสอบความทนทานระดับสากล",
+            "s3_tag": "EXECUTIVE VALUE PROPOSITION",
+            "s3_title": "3. ข้อเสนอต่อผู้บริหารระดับสูง (C-Level) และผลประโยชน์เชิงกลยุทธ์",
+            "exec_pitch_title": f"EXECUTIVE STRATEGIC PITCH FOR {client_name.upper()}",
+            "p1_title": "📉 ลดอัตราการคืนสินค้าและค่าขนส่ง",
+            "p1_sub": "• ลดอัตราการเคลมและคืนสินค้ามากกว่า 65%\n• ประหยัดค่าใช้จ่ายด้านโลจิสติกส์เปลี่ยนอุปกรณ์\n• เพิ่มความทนทานของ H/W ยืดอายุการใช้งาน",
+            "p2_title": "📞 ตัดปัญหาการโทรเข้าศูนย์บริการลูกค้า",
+            "p2_sub": "• ขจัดปัญหาข้อสงสัยเรื่องการจับคู่และแบตเตอรี่\n• ลดต้นทุนต่อสายในการให้บริการลูกค้า\n• เพิ่มอัตราความสำเร็จในการติดตั้งด้วยตนเอง",
+            "p3_title": "⭐ เพิ่มคะแนน NPS และความภักดีต่อแบรนด์",
+            "p3_sub": "• ประสบการณ์ควบคุมลื่นไหล ปราศจากความหน่วง\n• ป้องกันการยกเลิกบริการและเพิ่มความพึงพอใจ\n• สร้างภาพลักษณ์แบรนด์รีโมทระดับพรีเมียม",
+            "s4_tag": "FINANCIAL IMPACT & ROI SIMULATION",
+            "s4_title": f"4. ประมาณการผลตอบแทน ROI และการลดต้นทุน OPEX รายปีสำหรับ {client_name}",
+            "roi_card1_title": "💰 ยอดรวม OPEX ที่ประหยัดได้ต่อปี",
+            "roi_card2_title": "📞 ปริมาณการโทรเข้า CS ที่ลดลง",
+            "roi_card3_title": "📦 การเปลี่ยน/คืนสินค้าที่ลดลง",
+            "unit_cases": "สาย", "unit_units": "เครื่อง",
+            "roi_base_title": "📊 เกณฑ์การคำนวณแบบจำลอง (Baseline)",
+            "roi_p1": "จำนวนผู้ใช้งาน/อุปกรณ์ที่ใช้งานอยู่",
+            "roi_p2": "อัตราการติดต่อศูนย์บริการต่อปี",
+            "roi_p3": "ต้นทุนเฉลี่ยต่อการให้บริการ CS 1 ครั้ง",
+            "roi_p4": "อัตราการคืน/เคลมอุปกรณ์ต่อปี",
+            "roi_p5": "ต้นทุนอุปกรณ์ + ค่าขนส่งไปกลับ",
+            "roi_p6": "เป้าหมายการลดข้อบกพร่อง H/W & F/W รุ่นใหม่",
+            "roi_sav_title": "🎯 การวิเคราะห์การประหยัดต้นทุนรายปี (Annual Savings)",
+            "roi_s1": "ประหยัดค่าใช้จ่ายศูนย์บริการลูกค้า (CS)",
+            "roi_s2": "ประหยัดค่าเปลี่ยนอุปกรณ์และโลจิสติกส์",
+            "s5_tag": "AI DEEP ROOT CAUSE DIAGNOSIS",
+            "s5_title": "5. การวินิจฉัยสาเหตุเชิงลึก (Root Cause) และข้อเสนอเชิงกลยุทธ์โดย Gemini AI",
+            "col1_title": "📋 สรุปประเด็นปัญหาสำคัญ (VoC)",
+            "col2_title": "🔬 วินิจฉัยสาเหตุเชิงลึก H/W & F/W",
+            "col3_title": "🎯 ข้อเสนอสร้างความแตกต่างเชิงเทคนิค B2B",
         },
     }
     L = t_titles.get(lang, t_titles["en"])
@@ -951,14 +1118,14 @@ def create_pptx_deck(
             p.font.color.rgb = COLOR_TEXT_MAIN
     else:
         p = tf_sol2.paragraphs[0]
-        p.text = "🛡️ Total Quality & Reliability Assurance"
+        p.text = L["s2_fallback_title"]
         p.font.name = FONT_FAMILY
         p.font.size = Pt(15)
         p.font.bold = True
         p.font.color.rgb = COLOR_PRIMARY
         p.space_after = Pt(10)
         p = tf_sol2.add_paragraph()
-        p.text = "당사 표준 5단계 전수 검사 및 신뢰성 테스트 프로토콜이 기본 적용됩니다."
+        p.text = L["s2_fallback_body"]
         p.font.name = FONT_FAMILY
         p.font.size = Pt(10.5)
         p.font.color.rgb = COLOR_TEXT_MUTED
@@ -1034,12 +1201,12 @@ def create_pptx_deck(
                 "color": COLOR_ACCENT_GREEN,
             },
             {
-                "val": f"{roi_data['saved_cs_calls']:,} 건",
+                "val": f"{roi_data['saved_cs_calls']:,} {L['unit_cases']}",
                 "lbl": L["roi_card2_title"],
                 "color": COLOR_PRIMARY,
             },
             {
-                "val": f"{roi_data['saved_returns']:,} 대",
+                "val": f"{roi_data['saved_returns']:,} {L['unit_units']}",
                 "lbl": L["roi_card3_title"],
                 "color": COLOR_ACCENT_ORANGE,
             },
@@ -1068,7 +1235,7 @@ def create_pptx_deck(
 
         tf_detail_l = add_card_text_frame(slide_roi, Inches(0.8), Inches(3.05), Inches(5.66), Inches(3.85), pad_h=0.3, pad_v=0.25)
         p = tf_detail_l.paragraphs[0]
-        p.text = "📊 고객사 시뮬레이션 산출 기준 (Baseline)"
+        p.text = L["roi_base_title"]
         p.font.name = FONT_FAMILY
         p.font.size = Pt(13)
         p.font.bold = True
@@ -1076,12 +1243,12 @@ def create_pptx_deck(
         p.space_after = Pt(10)
 
         params_text = [
-            f"• 적용 활성 가입자/단말 수량: {roi_data['sub_count']:,} 대",
-            f"• 고객사 연간 RCU CS 상담 인입률: {roi_data['cs_rate']:.1f}%",
-            f"• 고객센터 1건당 상담 처리 원가: ${roi_data['cs_cost']:.2f}",
-            f"• 연간 실물 교체/불량 반품률: {roi_data['return_rate']:.1f}%",
-            f"• 단말 조달 원가 및 왕복 물류비: ${roi_data['return_cost']:.2f}",
-            f"• 당사 차세대 H/W & F/W 결함 개선 목표: {roi_data['reduction_rate']}% 억제",
+            f"• {L['roi_p1']}: {roi_data['sub_count']:,} {L['unit_units']}",
+            f"• {L['roi_p2']}: {roi_data['cs_rate']:.1f}%",
+            f"• {L['roi_p3']}: ${roi_data['cs_cost']:.2f}",
+            f"• {L['roi_p4']}: {roi_data['return_rate']:.1f}%",
+            f"• {L['roi_p5']}: ${roi_data['return_cost']:.2f}",
+            f"• {L['roi_p6']}: -{roi_data['reduction_rate']}%",
         ]
         for pt in params_text:
             p = tf_detail_l.add_paragraph()
@@ -1093,24 +1260,49 @@ def create_pptx_deck(
 
         tf_detail_r = add_card_text_frame(slide_roi, Inches(6.866), Inches(3.05), Inches(5.66), Inches(3.85), pad_h=0.3, pad_v=0.25)
         p = tf_detail_r.paragraphs[0]
-        p.text = "🎯 연간 세부 비용 절감 분석 (Annual Savings)"
+        p.text = L["roi_sav_title"]
         p.font.name = FONT_FAMILY
         p.font.size = Pt(13)
         p.font.bold = True
         p.font.color.rgb = COLOR_PRIMARY
         p.space_after = Pt(10)
 
-        calc_krw_eok = (roi_data['saved_total_cost'] * 1350.0) / 100000000.0
-        calc_text = [
-            f"1. CS 상담 콜센터 비용 절감: ${roi_data['saved_cs_cost']:,.0f} / 년",
-            f"   (기존 {int(roi_data['sub_count'] * roi_data['cs_rate'] / 100):,}건 중 {roi_data['saved_cs_calls']:,}건의 고객 불만 원천 예방)",
-            "",
-            f"2. 실물 반품/교체 물류비 절감: ${roi_data['saved_return_cost']:,.0f} / 년",
-            f"   (기존 {int(roi_data['sub_count'] * roi_data['return_rate'] / 100):,}대 중 {roi_data['saved_returns']:,}대의 단말 교체 비용 절감)",
-            "",
-            f"✨ 당사 솔루션 도입 시 연간 {roi_data['reduction_rate']}%의 고질적 결함을 제거하여,",
-            f"   연간 총 ${roi_data['saved_total_cost']:,.0f} (한화 약 {calc_krw_eok:,.1f}억 원)의 OPEX 절감 효과 달성.",
-        ]
+        base_calls_int = int(roi_data["sub_count"] * roi_data["cs_rate"] / 100)
+        base_rets_int = int(roi_data["sub_count"] * roi_data["return_rate"] / 100)
+
+        if lang == "ko":
+            calc_krw_eok = (roi_data["saved_total_cost"] * 1350.0) / 100000000.0
+            calc_text = [
+                f"1. {L['roi_s1']}: ${roi_data['saved_cs_cost']:,.0f} / 년",
+                f"   (기존 {base_calls_int:,}건 중 {roi_data['saved_cs_calls']:,}건 예방)",
+                "",
+                f"2. {L['roi_s2']}: ${roi_data['saved_return_cost']:,.0f} / 년",
+                f"   (기존 {base_rets_int:,}대 중 {roi_data['saved_returns']:,}대 반품 절감)",
+                "",
+                f"✨ 연간 총 ${roi_data['saved_total_cost']:,.0f} (한화 약 {calc_krw_eok:,.1f}억 원) OPEX 절감 달성",
+            ]
+        elif lang == "zh":
+            calc_rmb_wan = (roi_data["saved_total_cost"] * 7.2) / 10000.0
+            calc_text = [
+                f"1. {L['roi_s1']}: ${roi_data['saved_cs_cost']:,.0f} / 年",
+                f"   (原有 {base_calls_int:,} 单中预防 {roi_data['saved_cs_calls']:,} 单)",
+                "",
+                f"2. {L['roi_s2']}: ${roi_data['saved_return_cost']:,.0f} / 年",
+                f"   (原有 {base_rets_int:,} 台中减少 {roi_data['saved_returns']:,} 台换货)",
+                "",
+                f"✨ 年度总计节省 ${roi_data['saved_total_cost']:,.0f} (约 {calc_rmb_wan:,.1f}万 人民币) OPEX 支出",
+            ]
+        else:
+            calc_text = [
+                f"1. {L['roi_s1']}: ${roi_data['saved_cs_cost']:,.0f} / yr",
+                f"   ({roi_data['saved_cs_calls']:,} of {base_calls_int:,} {L['unit_cases']} prevented)",
+                "",
+                f"2. {L['roi_s2']}: ${roi_data['saved_return_cost']:,.0f} / yr",
+                f"   ({roi_data['saved_returns']:,} of {base_rets_int:,} {L['unit_units']} avoided)",
+                "",
+                f"✨ Total Annual OPEX Savings: ${roi_data['saved_total_cost']:,.0f} (-{roi_data['reduction_rate']}% defect reduction)",
+            ]
+
         for ct in calc_text:
             p = tf_detail_r.add_paragraph()
             p.text = ct
@@ -1175,17 +1367,17 @@ def create_pptx_deck(
 st.sidebar.header(txt("sidebar_filter"))
 
 if st.sidebar.button(txt("sync_btn"), key="btn_sync_collector"):
-    with st.spinner("🔄 글로벌 실시간 VoC 웹/스토어 수집 및 동기화 진행 중입니다... (약 15~30초 소요)"):
+    with st.spinner("🔄 Syncing latest global VoC data... (~15-20s)"):
         try:
             import collector2
             importlib.reload(collector2)
-            collector2.collect_advanced_voc()
+            collector2.collect_advanced_voc(quick_mode=True)
             st.cache_data.clear()
-            st.toast("✅ 최신 VoC 수집 및 데이터베이스 동기화가 완료되었습니다!", icon="🚀")
+            st.toast("✅ VoC database synced successfully!", icon="🚀")
             time.sleep(1)
             st.rerun()
         except Exception as e:
-            st.sidebar.error(f"⚠️ 수집 동기화 실패: {e}")
+            st.sidebar.error(f"⚠️ Sync failed: {e}")
 
 st.sidebar.markdown("---")
 st.sidebar.markdown(f"##### {txt('preset_title')}")
@@ -1318,7 +1510,7 @@ if search_keyword.strip():
         .str.contains(search_keyword.strip(), case=False, na=False)
     ]
 
-# [핵심] 분석 및 시각화용: '기타/일반'을 완전 배제한 정밀 기술 결함 데이터셋
+# 분석 및 시각화용: '기타/일반'을 완전 배제한 정밀 기술 결함 데이터셋
 filtered_df = filtered_df_raw[filtered_df_raw["Category"] != "기타/일반"].copy()
 if filtered_df.empty:
     filtered_df = filtered_df_raw.copy()
@@ -1337,8 +1529,9 @@ if not filtered_df.empty:
     ]
 
     brand_neg_stats = (
-        filtered_df.groupby("Brand")
-        .apply(lambda x: (x["Sentiment"] == "Negative").mean())
+        (filtered_df["Sentiment"] == "Negative")
+        .groupby(filtered_df["Brand"])
+        .mean()
         .reset_index(name="neg_rate")
     )
     brand_counts = filtered_df["Brand"].value_counts().reset_index()
@@ -1419,7 +1612,7 @@ with tab1:
             sample_text = str(cat_revs.iloc[0]).replace("\n", " ").strip()
             sample_text = re.sub(r"^\[.*?\]\s*", "", sample_text)
             return sample_text[:65] + "..." if len(sample_text) > 65 else sample_text
-        return "현장 접수 사례 데이터 분석 중"
+        return "-"
 
     with col_t1:
         st.subheader(txt("chart_cat_dist"))
@@ -1516,9 +1709,7 @@ with tab1:
             fig2.update_layout(margin=dict(t=20, b=20, l=10, r=10))
             st.plotly_chart(fig2, use_container_width=True)
 
-    # -------------------------------------------------------------
-    # 인라인 심층 드릴다운 & 현장 VoC 원문 5선 (Drill-Down Inspector)
-    # -------------------------------------------------------------
+    # 인라인 심층 드릴다운 & 현장 VoC 원문 5선
     st.write("")
     st.markdown("---")
     st.subheader(txt("drilldown_title"))
@@ -1595,9 +1786,7 @@ with tab1:
             else:
                 st.info(txt("no_cat_reviews"))
 
-    # -------------------------------------------------------------
-    # 주차별 트렌드 라인 차트 (동적 기간 선택기 - 다국어 적용)
-    # -------------------------------------------------------------
+    # 주차별 트렌드 라인 차트
     st.write("")
     st.markdown("---")
     
@@ -1879,7 +2068,7 @@ with tab4:
     )
 
 # =============================================================
-# TAB 5: B2B 수주 Pitch & ROI 시뮬레이터 (다국어 완전 지원)
+# TAB 5: B2B 수주 Pitch & ROI 시뮬레이터
 # =============================================================
 with tab5:
     st.subheader(txt("t5_title"))
@@ -2010,9 +2199,7 @@ with tab5:
             unsafe_allow_html=True,
         )
 
-        # ---------------------------------------------------------
-        # ROI & OPEX 절감 시뮬레이터 (다국어 완전 연동)
-        # ---------------------------------------------------------
+        # ROI & OPEX 절감 시뮬레이터
         st.write("")
         st.markdown("---")
         st.markdown(f"#### {txt('sim_title', client=target_client)}")
@@ -2075,7 +2262,6 @@ with tab5:
                     key="sim_return_cost"
                 )
 
-        # 산출 로직
         base_cs_calls = sub_count * (cs_rate / 100.0)
         saved_cs_calls = int(base_cs_calls * (reduction_rate / 100.0))
         saved_cs_cost = saved_cs_calls * cs_cost
@@ -2100,7 +2286,6 @@ with tab5:
             "saved_total_cost": saved_total_cost,
         }
 
-        # 언어별 통화 및 델타 현지화 포맷팅
         if curr_lang == "ko":
             cost_delta = f"약 {(saved_total_cost * 1350.0) / 100000000.0:,.1f}억 원 / 년"
             cs_delta = f"-{reduction_rate}% 감축"
@@ -2134,9 +2319,7 @@ with tab5:
         st.write("")
         st.markdown("---")
 
-        # ---------------------------------------------------------
         # Gemini AI VoC 심층 진단 & 결함 원인(Root Cause) 섹션
-        # ---------------------------------------------------------
         st.subheader(txt("ai_section_title"))
         ai_session_key = f"ai_insight_{target_client}_{curr_lang}"
 
