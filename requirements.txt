@@ -4,6 +4,8 @@ plotly
 python-pptx
 duckduckgo-search
 feedparser
+google-play-scraper
+youtube-comment-downloader
 requests
 beautifulsoup4
 lxml
