@@ -1,5 +1,7 @@
 streamlit
 pandas
 plotly
-openpyxl
 python-pptx
+duckduckgo-search
+requests
+beautifulsoup4
